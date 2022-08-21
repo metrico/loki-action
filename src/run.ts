@@ -69,10 +69,9 @@ export async function run(): Promise<void> {
     for (const j of jobs) {
       const lines: string[] = await gh.fetchLogs(client, repo, j);
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
-
-      console.log('!DEBUG! Iterating logs', lines.length, j.name);
       for (const l of lines) {
-        console.log(l);
+	// Ship logs to LogQL
+        core.debug(`${l}`);
       }
     }
   } catch (e) {
