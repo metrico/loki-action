@@ -24,7 +24,7 @@ inputs:
     required: false
     description: optional partition id
 runs:
-  using: 'node16'
+  using: 'node12'
   main: 'dist/index.js'
 branding:
   icon: 'copy'
