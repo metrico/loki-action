@@ -24,9 +24,17 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+      ## test loki logs
       - name: loki-action
         uses: ./
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           endpoint: ${{ secrets.LOGQL_ENDPOINT || 'https://cloki.glitch.me' }}
+          job-names: build
+      ## test elastic logs
+      - name: elastic-logs
+        uses: masci/elastic-logs@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          addresses:  ${{ secrets.LOGQL_ENDPOINT || 'https://cloki.glitch.me' }}
           job-names: build
