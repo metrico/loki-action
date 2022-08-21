@@ -1,7 +1,7 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 928:
+/***/ 5928:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -17,7 +17,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.fetchLogs = exports.fetchJobs = exports.getClient = void 0;
-const http_client_1 = __nccwpck_require__(925);
+const http_client_1 = __nccwpck_require__(9925);
 const githubAPIUrl = "https://api.github.com";
 function getClient(ghToken) {
     return new http_client_1.HttpClient("gh-http-client", [], {
@@ -68,7 +68,7 @@ exports.fetchLogs = fetchLogs;
 
 /***/ }),
 
-/***/ 884:
+/***/ 7884:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -105,11 +105,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = exports.getCommaSeparatedInput = void 0;
-const core = __importStar(__nccwpck_require__(186));
-const process = __importStar(__nccwpck_require__(765));
-const gh = __importStar(__nccwpck_require__(928));
+const core = __importStar(__nccwpck_require__(2186));
+const process = __importStar(__nccwpck_require__(1765));
+const gh = __importStar(__nccwpck_require__(5928));
+const pino_1 = __importDefault(__nccwpck_require__(9608));
 const defaultIndex = "logs-generic-default";
 // Split comma separated inputs into an array of trimmed values
 function getCommaSeparatedInput(value) {
@@ -154,13 +158,23 @@ function run() {
             core.debug(`Allow listing ${allowList.length} jobs in repo ${repo}`);
             const jobs = yield gh.fetchJobs(client, repo, workflowId, allowList);
             // Initialize LogQL sender [TODO]
+            const logger = (0, pino_1.default)({
+                transport: {
+                    target: 'pino-loki-transport',
+                    options: {
+                        lokiUrl: 'http://{{loki server ip address}}'
+                    }
+                }
+            });
             // get the logs for each job
             core.debug(`Getting logs for ${jobs.length} jobs`);
             for (const j of jobs) {
                 const lines = yield gh.fetchLogs(client, repo, j);
                 core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
                 for (const l of lines) {
-                    console.log(l);
+                    // Ship logs to LogQL
+                    // core.debug(`${l}`);
+                    logger.info(l);
                 }
             }
         }
@@ -174,7 +188,7 @@ exports.run = run;
 
 /***/ }),
 
-/***/ 351:
+/***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -200,8 +214,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issue = exports.issueCommand = void 0;
-const os = __importStar(__nccwpck_require__(87));
-const utils_1 = __nccwpck_require__(278);
+const os = __importStar(__nccwpck_require__(2087));
+const utils_1 = __nccwpck_require__(5278);
 /**
  * Commands
  *
@@ -273,7 +287,7 @@ function escapeProperty(s) {
 
 /***/ }),
 
-/***/ 186:
+/***/ 2186:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -308,13 +322,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getIDToken = exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.notice = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
-const command_1 = __nccwpck_require__(351);
+const command_1 = __nccwpck_require__(7351);
 const file_command_1 = __nccwpck_require__(717);
-const utils_1 = __nccwpck_require__(278);
-const os = __importStar(__nccwpck_require__(87));
-const path = __importStar(__nccwpck_require__(622));
-const uuid_1 = __nccwpck_require__(840);
-const oidc_utils_1 = __nccwpck_require__(41);
+const utils_1 = __nccwpck_require__(5278);
+const os = __importStar(__nccwpck_require__(2087));
+const path = __importStar(__nccwpck_require__(5622));
+const uuid_1 = __nccwpck_require__(5840);
+const oidc_utils_1 = __nccwpck_require__(8041);
 /**
  * The code to exit an action
  */
@@ -599,17 +613,17 @@ exports.getIDToken = getIDToken;
 /**
  * Summary exports
  */
-var summary_1 = __nccwpck_require__(327);
+var summary_1 = __nccwpck_require__(1327);
 Object.defineProperty(exports, "summary", ({ enumerable: true, get: function () { return summary_1.summary; } }));
 /**
  * @deprecated use core.summary
  */
-var summary_2 = __nccwpck_require__(327);
+var summary_2 = __nccwpck_require__(1327);
 Object.defineProperty(exports, "markdownSummary", ({ enumerable: true, get: function () { return summary_2.markdownSummary; } }));
 /**
  * Path exports
  */
-var path_utils_1 = __nccwpck_require__(981);
+var path_utils_1 = __nccwpck_require__(2981);
 Object.defineProperty(exports, "toPosixPath", ({ enumerable: true, get: function () { return path_utils_1.toPosixPath; } }));
 Object.defineProperty(exports, "toWin32Path", ({ enumerable: true, get: function () { return path_utils_1.toWin32Path; } }));
 Object.defineProperty(exports, "toPlatformPath", ({ enumerable: true, get: function () { return path_utils_1.toPlatformPath; } }));
@@ -646,9 +660,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.issueCommand = void 0;
 // We use any as a valid input type
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const fs = __importStar(__nccwpck_require__(747));
-const os = __importStar(__nccwpck_require__(87));
-const utils_1 = __nccwpck_require__(278);
+const fs = __importStar(__nccwpck_require__(5747));
+const os = __importStar(__nccwpck_require__(2087));
+const utils_1 = __nccwpck_require__(5278);
 function issueCommand(command, message) {
     const filePath = process.env[`GITHUB_${command}`];
     if (!filePath) {
@@ -666,7 +680,7 @@ exports.issueCommand = issueCommand;
 
 /***/ }),
 
-/***/ 41:
+/***/ 8041:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -682,9 +696,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.OidcClient = void 0;
-const http_client_1 = __nccwpck_require__(404);
-const auth_1 = __nccwpck_require__(758);
-const core_1 = __nccwpck_require__(186);
+const http_client_1 = __nccwpck_require__(1404);
+const auth_1 = __nccwpck_require__(6758);
+const core_1 = __nccwpck_require__(2186);
 class OidcClient {
     static createHttpClient(allowRetry = true, maxRetry = 10) {
         const requestOptions = {
@@ -750,7 +764,7 @@ exports.OidcClient = OidcClient;
 
 /***/ }),
 
-/***/ 981:
+/***/ 2981:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -776,7 +790,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.toPlatformPath = exports.toWin32Path = exports.toPosixPath = void 0;
-const path = __importStar(__nccwpck_require__(622));
+const path = __importStar(__nccwpck_require__(5622));
 /**
  * toPosixPath converts the given path to the posix form. On Windows, \\ will be
  * replaced with /.
@@ -815,7 +829,7 @@ exports.toPlatformPath = toPlatformPath;
 
 /***/ }),
 
-/***/ 327:
+/***/ 1327:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -831,8 +845,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.summary = exports.markdownSummary = exports.SUMMARY_DOCS_URL = exports.SUMMARY_ENV_VAR = void 0;
-const os_1 = __nccwpck_require__(87);
-const fs_1 = __nccwpck_require__(747);
+const os_1 = __nccwpck_require__(2087);
+const fs_1 = __nccwpck_require__(5747);
 const { access, appendFile, writeFile } = fs_1.promises;
 exports.SUMMARY_ENV_VAR = 'GITHUB_STEP_SUMMARY';
 exports.SUMMARY_DOCS_URL = 'https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary';
@@ -1105,7 +1119,7 @@ exports.summary = _summary;
 
 /***/ }),
 
-/***/ 278:
+/***/ 5278:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1152,7 +1166,7 @@ exports.toCommandProperties = toCommandProperties;
 
 /***/ }),
 
-/***/ 758:
+/***/ 6758:
 /***/ (function(__unused_webpack_module, exports) {
 
 "use strict";
@@ -1240,7 +1254,7 @@ exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHand
 
 /***/ }),
 
-/***/ 404:
+/***/ 1404:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1276,10 +1290,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.HttpClient = exports.isHttps = exports.HttpClientResponse = exports.HttpClientError = exports.getProxyUrl = exports.MediaTypes = exports.Headers = exports.HttpCodes = void 0;
-const http = __importStar(__nccwpck_require__(605));
-const https = __importStar(__nccwpck_require__(211));
-const pm = __importStar(__nccwpck_require__(843));
-const tunnel = __importStar(__nccwpck_require__(294));
+const http = __importStar(__nccwpck_require__(8605));
+const https = __importStar(__nccwpck_require__(7211));
+const pm = __importStar(__nccwpck_require__(2843));
+const tunnel = __importStar(__nccwpck_require__(4294));
 var HttpCodes;
 (function (HttpCodes) {
     HttpCodes[HttpCodes["OK"] = 200] = "OK";
@@ -1852,7 +1866,7 @@ const lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => ((c[k.toLowerCa
 
 /***/ }),
 
-/***/ 843:
+/***/ 2843:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1920,15 +1934,15 @@ exports.checkBypass = checkBypass;
 
 /***/ }),
 
-/***/ 925:
+/***/ 9925:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const http = __nccwpck_require__(605);
-const https = __nccwpck_require__(211);
-const pm = __nccwpck_require__(443);
+const http = __nccwpck_require__(8605);
+const https = __nccwpck_require__(7211);
+const pm = __nccwpck_require__(6443);
 let tunnel;
 var HttpCodes;
 (function (HttpCodes) {
@@ -2347,7 +2361,7 @@ class HttpClient {
         if (useProxy) {
             // If using proxy, need tunnel
             if (!tunnel) {
-                tunnel = __nccwpck_require__(294);
+                tunnel = __nccwpck_require__(4294);
             }
             const agentOptions = {
                 maxSockets: maxSockets,
@@ -2465,7 +2479,7 @@ exports.HttpClient = HttpClient;
 
 /***/ }),
 
-/***/ 443:
+/***/ 6443:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2530,27 +2544,4672 @@ exports.checkBypass = checkBypass;
 
 /***/ }),
 
-/***/ 294:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 6950:
+/***/ ((module) => {
 
-module.exports = __nccwpck_require__(219);
+"use strict";
+
+
+/* global SharedArrayBuffer, Atomics */
+
+if (typeof SharedArrayBuffer !== 'undefined' && typeof Atomics !== 'undefined') {
+  const nil = new Int32Array(new SharedArrayBuffer(4))
+
+  function sleep (ms) {
+    // also filters out NaN, non-number types, including empty strings, but allows bigints
+    const valid = ms > 0 && ms < Infinity 
+    if (valid === false) {
+      if (typeof ms !== 'number' && typeof ms !== 'bigint') {
+        throw TypeError('sleep: ms must be a number')
+      }
+      throw RangeError('sleep: ms must be a number that is greater than 0 but less than Infinity')
+    }
+
+    Atomics.wait(nil, 0, 0, Number(ms))
+  }
+  module.exports = sleep
+} else {
+
+  function sleep (ms) {
+    // also filters out NaN, non-number types, including empty strings, but allows bigints
+    const valid = ms > 0 && ms < Infinity 
+    if (valid === false) {
+      if (typeof ms !== 'number' && typeof ms !== 'bigint') {
+        throw TypeError('sleep: ms must be a number')
+      }
+      throw RangeError('sleep: ms must be a number that is greater than 0 but less than Infinity')
+    }
+    const target = Date.now() + Number(ms)
+    while (target > Date.now()){}
+  }
+
+  module.exports = sleep
+
+}
 
 
 /***/ }),
 
-/***/ 219:
+/***/ 4826:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const validator = __nccwpck_require__(4174)
+const parse = __nccwpck_require__(6214)
+const redactor = __nccwpck_require__(7333)
+const restorer = __nccwpck_require__(8806)
+const { groupRedact, nestedRedact } = __nccwpck_require__(4865)
+const state = __nccwpck_require__(1012)
+const rx = __nccwpck_require__(9158)
+const validate = validator()
+const noop = (o) => o
+noop.restore = noop
+
+const DEFAULT_CENSOR = '[REDACTED]'
+fastRedact.rx = rx
+fastRedact.validator = validator
+
+module.exports = fastRedact
+
+function fastRedact (opts = {}) {
+  const paths = Array.from(new Set(opts.paths || []))
+  const serialize = 'serialize' in opts ? (
+    opts.serialize === false ? opts.serialize
+      : (typeof opts.serialize === 'function' ? opts.serialize : JSON.stringify)
+  ) : JSON.stringify
+  const remove = opts.remove
+  if (remove === true && serialize !== JSON.stringify) {
+    throw Error('fast-redact – remove option may only be set when serializer is JSON.stringify')
+  }
+  const censor = remove === true
+    ? undefined
+    : 'censor' in opts ? opts.censor : DEFAULT_CENSOR
+
+  const isCensorFct = typeof censor === 'function'
+  const censorFctTakesPath = isCensorFct && censor.length > 1
+
+  if (paths.length === 0) return serialize || noop
+
+  validate({ paths, serialize, censor })
+
+  const { wildcards, wcLen, secret } = parse({ paths, censor })
+
+  const compileRestore = restorer({ secret, wcLen })
+  const strict = 'strict' in opts ? opts.strict : true
+
+  return redactor({ secret, wcLen, serialize, strict, isCensorFct, censorFctTakesPath }, state({
+    secret,
+    censor,
+    compileRestore,
+    serialize,
+    groupRedact,
+    nestedRedact,
+    wildcards,
+    wcLen
+  }))
+}
+
+
+/***/ }),
+
+/***/ 4865:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = {
+  groupRedact,
+  groupRestore,
+  nestedRedact,
+  nestedRestore
+}
+
+function groupRestore ({ keys, values, target }) {
+  if (target == null) return
+  const length = keys.length
+  for (var i = 0; i < length; i++) {
+    const k = keys[i]
+    target[k] = values[i]
+  }
+}
+
+function groupRedact (o, path, censor, isCensorFct, censorFctTakesPath) {
+  const target = get(o, path)
+  if (target == null) return { keys: null, values: null, target: null, flat: true }
+  const keys = Object.keys(target)
+  const keysLength = keys.length
+  const pathLength = path.length
+  const pathWithKey = censorFctTakesPath ? [...path] : undefined
+  const values = new Array(keysLength)
+
+  for (var i = 0; i < keysLength; i++) {
+    const key = keys[i]
+    values[i] = target[key]
+
+    if (censorFctTakesPath) {
+      pathWithKey[pathLength] = key
+      target[key] = censor(target[key], pathWithKey)
+    } else if (isCensorFct) {
+      target[key] = censor(target[key])
+    } else {
+      target[key] = censor
+    }
+  }
+  return { keys, values, target, flat: true }
+}
+
+function nestedRestore (arr) {
+  const length = arr.length
+  for (var i = 0; i < length; i++) {
+    const { key, target, value } = arr[i]
+    if (has(target, key)) {
+      target[key] = value
+    }
+    /* istanbul ignore else */
+    if (typeof target === 'object') {
+      const targetKeys = Object.keys(target)
+      for (var j = 0; j < targetKeys.length; j++) {
+        const tKey = targetKeys[j]
+        const subTarget = target[tKey]
+        if (has(subTarget, key)) {
+          subTarget[key] = value
+        }
+      }
+    }
+  }
+}
+
+function nestedRedact (store, o, path, ns, censor, isCensorFct, censorFctTakesPath) {
+  const target = get(o, path)
+  if (target == null) return
+  const keys = Object.keys(target)
+  const keysLength = keys.length
+  for (var i = 0; i < keysLength; i++) {
+    const key = keys[i]
+    const { value, parent, exists } =
+      specialSet(target, key, path, ns, censor, isCensorFct, censorFctTakesPath)
+
+    if (exists === true && parent !== null) {
+      store.push({ key: ns[ns.length - 1], target: parent, value })
+    }
+  }
+  return store
+}
+
+function has (obj, prop) {
+  return obj !== undefined && obj !== null
+    ? ('hasOwn' in Object ? Object.hasOwn(obj, prop) : Object.prototype.hasOwnProperty.call(obj, prop))
+    : false
+}
+
+function specialSet (o, k, path, afterPath, censor, isCensorFct, censorFctTakesPath) {
+  const afterPathLen = afterPath.length
+  const lastPathIndex = afterPathLen - 1
+  const originalKey = k
+  var i = -1
+  var n
+  var nv
+  var ov
+  var oov = null
+  var exists = true
+  var wc = null
+  ov = n = o[k]
+  if (typeof n !== 'object') return { value: null, parent: null, exists }
+  while (n != null && ++i < afterPathLen) {
+    k = afterPath[i]
+    oov = ov
+    if (k !== '*' && !wc && !(typeof n === 'object' && k in n)) {
+      exists = false
+      break
+    }
+    if (k === '*') {
+      wc = k
+      if (i !== lastPathIndex) {
+        continue
+      }
+    }
+    if (wc) {
+      const wcKeys = Object.keys(n)
+      for (var j = 0; j < wcKeys.length; j++) {
+        const wck = wcKeys[j]
+        const wcov = n[wck]
+        const kIsWc = k === '*'
+        if (kIsWc || (typeof wcov === 'object' && wcov !== null && k in wcov)) {
+          if (kIsWc) {
+            ov = wcov
+          } else {
+            ov = wcov[k]
+          }
+          nv = (i !== lastPathIndex)
+            ? ov
+            : (isCensorFct
+              ? (censorFctTakesPath ? censor(ov, [...path, originalKey, ...afterPath]) : censor(ov))
+              : censor)
+          if (kIsWc) {
+            n[wck] = nv
+          } else {
+            wcov[k] = (nv === undefined && censor !== undefined) || (has(wcov, k) && nv === ov) ? wcov[k] : nv
+          }
+        }
+      }
+      wc = null
+    } else {
+      ov = n[k]
+      nv = (i !== lastPathIndex)
+        ? ov
+        : (isCensorFct
+          ? (censorFctTakesPath ? censor(ov, [...path, originalKey, ...afterPath]) : censor(ov))
+          : censor)
+      n[k] = (has(n, k) && nv === ov) || (nv === undefined && censor !== undefined) ? n[k] : nv
+      n = n[k]
+    }
+    if (typeof n !== 'object') break
+  }
+  return { value: ov, parent: oov, exists }
+}
+
+function get (o, p) {
+  var i = -1
+  var l = p.length
+  var n = o
+  while (n != null && ++i < l) {
+    n = n[p[i]]
+  }
+  return n
+}
+
+
+/***/ }),
+
+/***/ 6214:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const rx = __nccwpck_require__(9158)
+
+module.exports = parse
+
+function parse ({ paths }) {
+  const wildcards = []
+  var wcLen = 0
+  const secret = paths.reduce(function (o, strPath, ix) {
+    var path = strPath.match(rx).map((p) => p.replace(/'|"|`/g, ''))
+    const leadingBracket = strPath[0] === '['
+    path = path.map((p) => {
+      if (p[0] === '[') return p.substr(1, p.length - 2)
+      else return p
+    })
+    const star = path.indexOf('*')
+    if (star > -1) {
+      const before = path.slice(0, star)
+      const beforeStr = before.join('.')
+      const after = path.slice(star + 1, path.length)
+      const nested = after.length > 0
+      wcLen++
+      wildcards.push({
+        before,
+        beforeStr,
+        after,
+        nested
+      })
+    } else {
+      o[strPath] = {
+        path: path,
+        val: undefined,
+        precensored: false,
+        circle: '',
+        escPath: JSON.stringify(strPath),
+        leadingBracket: leadingBracket
+      }
+    }
+    return o
+  }, {})
+
+  return { wildcards, wcLen, secret }
+}
+
+
+/***/ }),
+
+/***/ 7333:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const rx = __nccwpck_require__(9158)
+
+module.exports = redactor
+
+function redactor ({ secret, serialize, wcLen, strict, isCensorFct, censorFctTakesPath }, state) {
+  /* eslint-disable-next-line */
+  const redact = Function('o', `
+    if (typeof o !== 'object' || o == null) {
+      ${strictImpl(strict, serialize)}
+    }
+    const { censor, secret } = this
+    ${redactTmpl(secret, isCensorFct, censorFctTakesPath)}
+    this.compileRestore()
+    ${dynamicRedactTmpl(wcLen > 0, isCensorFct, censorFctTakesPath)}
+    ${resultTmpl(serialize)}
+  `).bind(state)
+
+  if (serialize === false) {
+    redact.restore = (o) => state.restore(o)
+  }
+
+  return redact
+}
+
+function redactTmpl (secret, isCensorFct, censorFctTakesPath) {
+  return Object.keys(secret).map((path) => {
+    const { escPath, leadingBracket, path: arrPath } = secret[path]
+    const skip = leadingBracket ? 1 : 0
+    const delim = leadingBracket ? '' : '.'
+    const hops = []
+    var match
+    while ((match = rx.exec(path)) !== null) {
+      const [ , ix ] = match
+      const { index, input } = match
+      if (index > skip) hops.push(input.substring(0, index - (ix ? 0 : 1)))
+    }
+    var existence = hops.map((p) => `o${delim}${p}`).join(' && ')
+    if (existence.length === 0) existence += `o${delim}${path} != null`
+    else existence += ` && o${delim}${path} != null`
+
+    const circularDetection = `
+      switch (true) {
+        ${hops.reverse().map((p) => `
+          case o${delim}${p} === censor:
+            secret[${escPath}].circle = ${JSON.stringify(p)}
+            break
+        `).join('\n')}
+      }
+    `
+
+    const censorArgs = censorFctTakesPath
+      ? `val, ${JSON.stringify(arrPath)}`
+      : `val`
+
+    return `
+      if (${existence}) {
+        const val = o${delim}${path}
+        if (val === censor) {
+          secret[${escPath}].precensored = true
+        } else {
+          secret[${escPath}].val = val
+          o${delim}${path} = ${isCensorFct ? `censor(${censorArgs})` : 'censor'}
+          ${circularDetection}
+        }
+      }
+    `
+  }).join('\n')
+}
+
+function dynamicRedactTmpl (hasWildcards, isCensorFct, censorFctTakesPath) {
+  return hasWildcards === true ? `
+    {
+      const { wildcards, wcLen, groupRedact, nestedRedact } = this
+      for (var i = 0; i < wcLen; i++) {
+        const { before, beforeStr, after, nested } = wildcards[i]
+        if (nested === true) {
+          secret[beforeStr] = secret[beforeStr] || []
+          nestedRedact(secret[beforeStr], o, before, after, censor, ${isCensorFct}, ${censorFctTakesPath})
+        } else secret[beforeStr] = groupRedact(o, before, censor, ${isCensorFct}, ${censorFctTakesPath})
+      }
+    }
+  ` : ''
+}
+
+function resultTmpl (serialize) {
+  return serialize === false ? `return o` : `
+    var s = this.serialize(o)
+    this.restore(o)
+    return s
+  `
+}
+
+function strictImpl (strict, serialize) {
+  return strict === true
+    ? `throw Error('fast-redact: primitives cannot be redacted')`
+    : serialize === false ? `return o` : `return this.serialize(o)`
+}
+
+
+/***/ }),
+
+/***/ 8806:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { groupRestore, nestedRestore } = __nccwpck_require__(4865)
+
+module.exports = restorer
+
+function restorer ({ secret, wcLen }) {
+  return function compileRestore () {
+    if (this.restore) return
+    const paths = Object.keys(secret)
+    const resetters = resetTmpl(secret, paths)
+    const hasWildcards = wcLen > 0
+    const state = hasWildcards ? { secret, groupRestore, nestedRestore } : { secret }
+    /* eslint-disable-next-line */
+    this.restore = Function(
+      'o',
+      restoreTmpl(resetters, paths, hasWildcards)
+    ).bind(state)
+  }
+}
+
+/**
+ * Mutates the original object to be censored by restoring its original values
+ * prior to censoring.
+ *
+ * @param {object} secret Compiled object describing which target fields should
+ * be censored and the field states.
+ * @param {string[]} paths The list of paths to censor as provided at
+ * initialization time.
+ *
+ * @returns {string} String of JavaScript to be used by `Function()`. The
+ * string compiles to the function that does the work in the description.
+ */
+function resetTmpl (secret, paths) {
+  return paths.map((path) => {
+    const { circle, escPath, leadingBracket } = secret[path]
+    const delim = leadingBracket ? '' : '.'
+    const reset = circle
+      ? `o.${circle} = secret[${escPath}].val`
+      : `o${delim}${path} = secret[${escPath}].val`
+    const clear = `secret[${escPath}].val = undefined`
+    return `
+      if (secret[${escPath}].val !== undefined) {
+        try { ${reset} } catch (e) {}
+        ${clear}
+      }
+    `
+  }).join('')
+}
+
+/**
+ * Creates the body of the restore function
+ *
+ * Restoration of the redacted object happens
+ * backwards, in reverse order of redactions,
+ * so that repeated redactions on the same object
+ * property can be eventually rolled back to the
+ * original value.
+ *
+ * This way dynamic redactions are restored first,
+ * starting from the last one working backwards and
+ * followed by the static ones.
+ *
+ * @returns {string} the body of the restore function
+ */
+function restoreTmpl (resetters, paths, hasWildcards) {
+  const dynamicReset = hasWildcards === true ? `
+    const keys = Object.keys(secret)
+    const len = keys.length
+    for (var i = len - 1; i >= ${paths.length}; i--) {
+      const k = keys[i]
+      const o = secret[k]
+      if (o.flat === true) this.groupRestore(o)
+      else this.nestedRestore(o)
+      secret[k] = null
+    }
+  ` : ''
+
+  return `
+    const secret = this.secret
+    ${dynamicReset}
+    ${resetters}
+    return o
+  `
+}
+
+
+/***/ }),
+
+/***/ 9158:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = /[^.[\]]+|\[((?:.)*?)\]/g
+
+/*
+Regular expression explanation:
+
+Alt 1: /[^.[\]]+/ - Match one or more characters that are *not* a dot (.)
+                    opening square bracket ([) or closing square bracket (])
+
+Alt 2: /\[((?:.)*?)\]/ - If the char IS dot or square bracket, then create a capture
+                         group (which will be capture group $1) that matches anything
+                         within square brackets. Expansion is lazy so it will
+                         stop matching as soon as the first closing bracket is met `]`
+                         (rather than continuing to match until the final closing bracket).
+*/
+
+
+/***/ }),
+
+/***/ 1012:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = state
+
+function state (o) {
+  const {
+    secret,
+    censor,
+    compileRestore,
+    serialize,
+    groupRedact,
+    nestedRedact,
+    wildcards,
+    wcLen
+  } = o
+  const builder = [{ secret, censor, compileRestore }]
+  if (serialize !== false) builder.push({ serialize })
+  if (wcLen > 0) builder.push({ groupRedact, nestedRedact, wildcards, wcLen })
+  return Object.assign(...builder)
+}
+
+
+/***/ }),
+
+/***/ 4174:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { createContext, runInContext } = __nccwpck_require__(2184)
+
+module.exports = validator
+
+function validator (opts = {}) {
+  const {
+    ERR_PATHS_MUST_BE_STRINGS = () => 'fast-redact - Paths must be (non-empty) strings',
+    ERR_INVALID_PATH = (s) => `fast-redact – Invalid path (${s})`
+  } = opts
+
+  return function validate ({ paths }) {
+    paths.forEach((s) => {
+      if (typeof s !== 'string') {
+        throw Error(ERR_PATHS_MUST_BE_STRINGS())
+      }
+      try {
+        if (/〇/.test(s)) throw Error()
+        const proxy = new Proxy({}, { get: () => proxy, set: () => { throw Error() } })
+        const expr = (s[0] === '[' ? '' : '.') + s.replace(/^\*/, '〇').replace(/\.\*/g, '.〇').replace(/\[\*\]/g, '[〇]')
+        if (/\n|\r|;/.test(expr)) throw Error()
+        if (/\/\*/.test(expr)) throw Error()
+        runInContext(`
+          (function () {
+            'use strict'
+            o${expr}
+            if ([o${expr}].length !== 1) throw Error()
+          })()
+        `, createContext({ o: proxy, 〇: null }), {
+          codeGeneration: { strings: false, wasm: false }
+        })
+      } catch (e) {
+        throw Error(ERR_INVALID_PATH(s))
+      }
+    })
+  }
+}
+
+
+/***/ }),
+
+/***/ 9660:
+/***/ ((module) => {
+
+"use strict";
+
+
+function genWrap (wraps, ref, fn, event) {
+  function wrap () {
+    const obj = ref.deref()
+    // This should alway happen, however GC is
+    // undeterministic so it might happen.
+    /* istanbul ignore else */
+    if (obj !== undefined) {
+      fn(obj, event)
+    }
+  }
+
+  wraps[event] = wrap
+  process.once(event, wrap)
+}
+
+const registry = new FinalizationRegistry(clear)
+const map = new WeakMap()
+
+function clear (wraps) {
+  process.removeListener('exit', wraps.exit)
+  process.removeListener('beforeExit', wraps.beforeExit)
+}
+
+function register (obj, fn) {
+  if (obj === undefined) {
+    throw new Error('the object can\'t be undefined')
+  }
+  const ref = new WeakRef(obj)
+
+  const wraps = {}
+  map.set(obj, wraps)
+  registry.register(obj, wraps)
+
+  genWrap(wraps, ref, fn, 'exit')
+  genWrap(wraps, ref, fn, 'beforeExit')
+}
+
+function unregister (obj) {
+  const wraps = map.get(obj)
+  map.delete(obj)
+  if (wraps) {
+    clear(wraps)
+  }
+  registry.unregister(obj)
+}
+
+module.exports = {
+  register,
+  unregister
+}
+
+
+/***/ }),
+
+/***/ 2571:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const errSerializer = __nccwpck_require__(6522)
+const reqSerializers = __nccwpck_require__(5492)
+const resSerializers = __nccwpck_require__(9048)
+
+module.exports = {
+  err: errSerializer,
+  mapHttpRequest: reqSerializers.mapHttpRequest,
+  mapHttpResponse: resSerializers.mapHttpResponse,
+  req: reqSerializers.reqSerializer,
+  res: resSerializers.resSerializer,
+
+  wrapErrorSerializer: function wrapErrorSerializer (customSerializer) {
+    if (customSerializer === errSerializer) return customSerializer
+    return function wrapErrSerializer (err) {
+      return customSerializer(errSerializer(err))
+    }
+  },
+
+  wrapRequestSerializer: function wrapRequestSerializer (customSerializer) {
+    if (customSerializer === reqSerializers.reqSerializer) return customSerializer
+    return function wrappedReqSerializer (req) {
+      return customSerializer(reqSerializers.reqSerializer(req))
+    }
+  },
+
+  wrapResponseSerializer: function wrapResponseSerializer (customSerializer) {
+    if (customSerializer === resSerializers.resSerializer) return customSerializer
+    return function wrappedResSerializer (res) {
+      return customSerializer(resSerializers.resSerializer(res))
+    }
+  }
+}
+
+
+/***/ }),
+
+/***/ 6522:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = errSerializer
+
+const { toString } = Object.prototype
+const seen = Symbol('circular-ref-tag')
+const rawSymbol = Symbol('pino-raw-err-ref')
+const pinoErrProto = Object.create({}, {
+  type: {
+    enumerable: true,
+    writable: true,
+    value: undefined
+  },
+  message: {
+    enumerable: true,
+    writable: true,
+    value: undefined
+  },
+  stack: {
+    enumerable: true,
+    writable: true,
+    value: undefined
+  },
+  raw: {
+    enumerable: false,
+    get: function () {
+      return this[rawSymbol]
+    },
+    set: function (val) {
+      this[rawSymbol] = val
+    }
+  }
+})
+Object.defineProperty(pinoErrProto, rawSymbol, {
+  writable: true,
+  value: {}
+})
+
+function errSerializer (err) {
+  if (!(err instanceof Error)) {
+    return err
+  }
+
+  err[seen] = undefined // tag to prevent re-looking at this
+  const _err = Object.create(pinoErrProto)
+  _err.type = toString.call(err.constructor) === '[object Function]'
+    ? err.constructor.name
+    : err.name
+  _err.message = err.message
+  _err.stack = err.stack
+  for (const key in err) {
+    if (_err[key] === undefined) {
+      const val = err[key]
+      if (val instanceof Error) {
+        /* eslint-disable no-prototype-builtins */
+        if (!val.hasOwnProperty(seen)) {
+          _err[key] = errSerializer(val)
+        }
+      } else {
+        _err[key] = val
+      }
+    }
+  }
+
+  delete err[seen] // clean up tag in case err is serialized again later
+  _err.raw = err
+  return _err
+}
+
+
+/***/ }),
+
+/***/ 5492:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = {
+  mapHttpRequest,
+  reqSerializer
+}
+
+const rawSymbol = Symbol('pino-raw-req-ref')
+const pinoReqProto = Object.create({}, {
+  id: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  method: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  url: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  query: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  params: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  headers: {
+    enumerable: true,
+    writable: true,
+    value: {}
+  },
+  remoteAddress: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  remotePort: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  raw: {
+    enumerable: false,
+    get: function () {
+      return this[rawSymbol]
+    },
+    set: function (val) {
+      this[rawSymbol] = val
+    }
+  }
+})
+Object.defineProperty(pinoReqProto, rawSymbol, {
+  writable: true,
+  value: {}
+})
+
+function reqSerializer (req) {
+  // req.info is for hapi compat.
+  const connection = req.info || req.socket
+  const _req = Object.create(pinoReqProto)
+  _req.id = (typeof req.id === 'function' ? req.id() : (req.id || (req.info ? req.info.id : undefined)))
+  _req.method = req.method
+  // req.originalUrl is for expressjs compat.
+  if (req.originalUrl) {
+    _req.url = req.originalUrl
+    _req.query = req.query
+    _req.params = req.params
+  } else {
+    // req.url.path is  for hapi compat.
+    _req.url = req.path || (req.url ? (req.url.path || req.url) : undefined)
+  }
+  _req.headers = req.headers
+  _req.remoteAddress = connection && connection.remoteAddress
+  _req.remotePort = connection && connection.remotePort
+  // req.raw is  for hapi compat/equivalence
+  _req.raw = req.raw || req
+  return _req
+}
+
+function mapHttpRequest (req) {
+  return {
+    req: reqSerializer(req)
+  }
+}
+
+
+/***/ }),
+
+/***/ 9048:
+/***/ ((module) => {
+
+"use strict";
+
+
+module.exports = {
+  mapHttpResponse,
+  resSerializer
+}
+
+const rawSymbol = Symbol('pino-raw-res-ref')
+const pinoResProto = Object.create({}, {
+  statusCode: {
+    enumerable: true,
+    writable: true,
+    value: 0
+  },
+  headers: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  raw: {
+    enumerable: false,
+    get: function () {
+      return this[rawSymbol]
+    },
+    set: function (val) {
+      this[rawSymbol] = val
+    }
+  }
+})
+Object.defineProperty(pinoResProto, rawSymbol, {
+  writable: true,
+  value: {}
+})
+
+function resSerializer (res) {
+  const _res = Object.create(pinoResProto)
+  _res.statusCode = res.statusCode
+  _res.headers = res.getHeaders ? res.getHeaders() : res._headers
+  _res.raw = res
+  return _res
+}
+
+function mapHttpResponse (res) {
+  return {
+    res: resSerializer(res)
+  }
+}
+
+
+/***/ }),
+
+/***/ 7453:
+/***/ ((module) => {
+
+"use strict";
+
+
+function noOpPrepareStackTrace (_, stack) {
+  return stack
+}
+
+module.exports = function getCallers () {
+  const originalPrepare = Error.prepareStackTrace
+  Error.prepareStackTrace = noOpPrepareStackTrace
+  const stack = new Error().stack
+  Error.prepareStackTrace = originalPrepare
+
+  if (!Array.isArray(stack)) {
+    return undefined
+  }
+
+  const entries = stack.slice(2)
+
+  const fileNames = []
+
+  for (const entry of entries) {
+    if (!entry) {
+      continue
+    }
+
+    fileNames.push(entry.getFileName())
+  }
+
+  return fileNames
+}
+
+
+/***/ }),
+
+/***/ 4735:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const warning = __nccwpck_require__(5521)()
+module.exports = warning
+
+const warnName = 'PinoWarning'
+
+warning.create(warnName, 'PINODEP008', 'prettyPrint is deprecated, look at https://github.com/pinojs/pino-pretty for alternatives.')
+
+warning.create(warnName, 'PINODEP009', 'The use of pino.final is discouraged in Node.js v14+ and not required. It will be removed in the next major version')
+
+
+/***/ }),
+
+/***/ 591:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+/* eslint no-prototype-builtins: 0 */
+const {
+  lsCacheSym,
+  levelValSym,
+  useOnlyCustomLevelsSym,
+  streamSym,
+  formattersSym,
+  hooksSym
+} = __nccwpck_require__(3957)
+const { noop, genLog } = __nccwpck_require__(1521)
+
+const levels = {
+  trace: 10,
+  debug: 20,
+  info: 30,
+  warn: 40,
+  error: 50,
+  fatal: 60
+}
+const levelMethods = {
+  fatal: (hook) => {
+    const logFatal = genLog(levels.fatal, hook)
+    return function (...args) {
+      const stream = this[streamSym]
+      logFatal.call(this, ...args)
+      if (typeof stream.flushSync === 'function') {
+        try {
+          stream.flushSync()
+        } catch (e) {
+          // https://github.com/pinojs/pino/pull/740#discussion_r346788313
+        }
+      }
+    }
+  },
+  error: (hook) => genLog(levels.error, hook),
+  warn: (hook) => genLog(levels.warn, hook),
+  info: (hook) => genLog(levels.info, hook),
+  debug: (hook) => genLog(levels.debug, hook),
+  trace: (hook) => genLog(levels.trace, hook)
+}
+
+const nums = Object.keys(levels).reduce((o, k) => {
+  o[levels[k]] = k
+  return o
+}, {})
+
+const initialLsCache = Object.keys(nums).reduce((o, k) => {
+  o[k] = '{"level":' + Number(k)
+  return o
+}, {})
+
+function genLsCache (instance) {
+  const formatter = instance[formattersSym].level
+  const { labels } = instance.levels
+  const cache = {}
+  for (const label in labels) {
+    const level = formatter(labels[label], Number(label))
+    cache[label] = JSON.stringify(level).slice(0, -1)
+  }
+  instance[lsCacheSym] = cache
+  return instance
+}
+
+function isStandardLevel (level, useOnlyCustomLevels) {
+  if (useOnlyCustomLevels) {
+    return false
+  }
+
+  switch (level) {
+    case 'fatal':
+    case 'error':
+    case 'warn':
+    case 'info':
+    case 'debug':
+    case 'trace':
+      return true
+    default:
+      return false
+  }
+}
+
+function setLevel (level) {
+  const { labels, values } = this.levels
+  if (typeof level === 'number') {
+    if (labels[level] === undefined) throw Error('unknown level value' + level)
+    level = labels[level]
+  }
+  if (values[level] === undefined) throw Error('unknown level ' + level)
+  const preLevelVal = this[levelValSym]
+  const levelVal = this[levelValSym] = values[level]
+  const useOnlyCustomLevelsVal = this[useOnlyCustomLevelsSym]
+  const hook = this[hooksSym].logMethod
+
+  for (const key in values) {
+    if (levelVal > values[key]) {
+      this[key] = noop
+      continue
+    }
+    this[key] = isStandardLevel(key, useOnlyCustomLevelsVal) ? levelMethods[key](hook) : genLog(values[key], hook)
+  }
+
+  this.emit(
+    'level-change',
+    level,
+    levelVal,
+    labels[preLevelVal],
+    preLevelVal
+  )
+}
+
+function getLevel (level) {
+  const { levels, levelVal } = this
+  // protection against potential loss of Pino scope from serializers (edge case with circular refs - https://github.com/pinojs/pino/issues/833)
+  return (levels && levels.labels) ? levels.labels[levelVal] : ''
+}
+
+function isLevelEnabled (logLevel) {
+  const { values } = this.levels
+  const logLevelVal = values[logLevel]
+  return logLevelVal !== undefined && (logLevelVal >= this[levelValSym])
+}
+
+function mappings (customLevels = null, useOnlyCustomLevels = false) {
+  const customNums = customLevels
+    /* eslint-disable */
+    ? Object.keys(customLevels).reduce((o, k) => {
+        o[customLevels[k]] = k
+        return o
+      }, {})
+    : null
+    /* eslint-enable */
+
+  const labels = Object.assign(
+    Object.create(Object.prototype, { Infinity: { value: 'silent' } }),
+    useOnlyCustomLevels ? null : nums,
+    customNums
+  )
+  const values = Object.assign(
+    Object.create(Object.prototype, { silent: { value: Infinity } }),
+    useOnlyCustomLevels ? null : levels,
+    customLevels
+  )
+  return { labels, values }
+}
+
+function assertDefaultLevelFound (defaultLevel, customLevels, useOnlyCustomLevels) {
+  if (typeof defaultLevel === 'number') {
+    const values = [].concat(
+      Object.keys(customLevels || {}).map(key => customLevels[key]),
+      useOnlyCustomLevels ? [] : Object.keys(nums).map(level => +level),
+      Infinity
+    )
+    if (!values.includes(defaultLevel)) {
+      throw Error(`default level:${defaultLevel} must be included in custom levels`)
+    }
+    return
+  }
+
+  const labels = Object.assign(
+    Object.create(Object.prototype, { silent: { value: Infinity } }),
+    useOnlyCustomLevels ? null : levels,
+    customLevels
+  )
+  if (!(defaultLevel in labels)) {
+    throw Error(`default level:${defaultLevel} must be included in custom levels`)
+  }
+}
+
+function assertNoLevelCollisions (levels, customLevels) {
+  const { labels, values } = levels
+  for (const k in customLevels) {
+    if (k in values) {
+      throw Error('levels cannot be overridden')
+    }
+    if (customLevels[k] in labels) {
+      throw Error('pre-existing level values cannot be used for new levels')
+    }
+  }
+}
+
+module.exports = {
+  initialLsCache,
+  genLsCache,
+  levelMethods,
+  getLevel,
+  setLevel,
+  isLevelEnabled,
+  mappings,
+  levels,
+  assertNoLevelCollisions,
+  assertDefaultLevelFound
+}
+
+
+/***/ }),
+
+/***/ 8578:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { version } = __nccwpck_require__(8686)
+
+module.exports = { version }
+
+
+/***/ }),
+
+/***/ 5505:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const metadata = Symbol.for('pino.metadata')
+const { levels } = __nccwpck_require__(591)
+
+const defaultLevels = Object.create(levels)
+defaultLevels.silent = Infinity
+
+const DEFAULT_INFO_LEVEL = levels.info
+
+function multistream (streamsArray, opts) {
+  let counter = 0
+  streamsArray = streamsArray || []
+  opts = opts || { dedupe: false }
+
+  let levels = defaultLevels
+  if (opts.levels && typeof opts.levels === 'object') {
+    levels = opts.levels
+  }
+
+  const res = {
+    write,
+    add,
+    flushSync,
+    end,
+    minLevel: 0,
+    streams: [],
+    clone,
+    [metadata]: true
+  }
+
+  if (Array.isArray(streamsArray)) {
+    streamsArray.forEach(add, res)
+  } else {
+    add.call(res, streamsArray)
+  }
+
+  // clean this object up
+  // or it will stay allocated forever
+  // as it is closed on the following closures
+  streamsArray = null
+
+  return res
+
+  // we can exit early because the streams are ordered by level
+  function write (data) {
+    let dest
+    const level = this.lastLevel
+    const { streams } = this
+    let stream
+    for (let i = 0; i < streams.length; i++) {
+      dest = streams[i]
+      if (dest.level <= level) {
+        stream = dest.stream
+        if (stream[metadata]) {
+          const { lastTime, lastMsg, lastObj, lastLogger } = this
+          stream.lastLevel = level
+          stream.lastTime = lastTime
+          stream.lastMsg = lastMsg
+          stream.lastObj = lastObj
+          stream.lastLogger = lastLogger
+        }
+        if (!opts.dedupe || dest.level === level) {
+          stream.write(data)
+        }
+      } else {
+        break
+      }
+    }
+  }
+
+  function flushSync () {
+    for (const { stream } of this.streams) {
+      if (typeof stream.flushSync === 'function') {
+        stream.flushSync()
+      }
+    }
+  }
+
+  function add (dest) {
+    if (!dest) {
+      return res
+    }
+
+    // Check that dest implements either StreamEntry or DestinationStream
+    const isStream = typeof dest.write === 'function' || dest.stream
+    const stream_ = dest.write ? dest : dest.stream
+    // This is necessary to provide a meaningful error message, otherwise it throws somewhere inside write()
+    if (!isStream) {
+      throw Error('stream object needs to implement either StreamEntry or DestinationStream interface')
+    }
+
+    const { streams } = this
+
+    let level
+    if (typeof dest.levelVal === 'number') {
+      level = dest.levelVal
+    } else if (typeof dest.level === 'string') {
+      level = levels[dest.level]
+    } else if (typeof dest.level === 'number') {
+      level = dest.level
+    } else {
+      level = DEFAULT_INFO_LEVEL
+    }
+
+    const dest_ = {
+      stream: stream_,
+      level,
+      levelVal: undefined,
+      id: counter++
+    }
+
+    streams.unshift(dest_)
+    streams.sort(compareByLevel)
+
+    this.minLevel = streams[0].level
+
+    return res
+  }
+
+  function end () {
+    for (const { stream } of this.streams) {
+      if (typeof stream.flushSync === 'function') {
+        stream.flushSync()
+      }
+      stream.end()
+    }
+  }
+
+  function clone (level) {
+    const streams = new Array(this.streams.length)
+
+    for (let i = 0; i < streams.length; i++) {
+      streams[i] = {
+        level: level,
+        stream: this.streams[i].stream
+      }
+    }
+
+    return {
+      write,
+      add,
+      minLevel: level,
+      streams,
+      clone,
+      flushSync,
+      [metadata]: true
+    }
+  }
+}
+
+function compareByLevel (a, b) {
+  return a.level - b.level
+}
+
+module.exports = multistream
+
+
+/***/ }),
+
+/***/ 6899:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+/* eslint no-prototype-builtins: 0 */
+
+const { EventEmitter } = __nccwpck_require__(8614)
+const {
+  lsCacheSym,
+  levelValSym,
+  setLevelSym,
+  getLevelSym,
+  chindingsSym,
+  parsedChindingsSym,
+  mixinSym,
+  asJsonSym,
+  writeSym,
+  mixinMergeStrategySym,
+  timeSym,
+  timeSliceIndexSym,
+  streamSym,
+  serializersSym,
+  formattersSym,
+  useOnlyCustomLevelsSym,
+  needsMetadataGsym,
+  redactFmtSym,
+  stringifySym,
+  formatOptsSym,
+  stringifiersSym
+} = __nccwpck_require__(3957)
+const {
+  getLevel,
+  setLevel,
+  isLevelEnabled,
+  mappings,
+  initialLsCache,
+  genLsCache,
+  assertNoLevelCollisions
+} = __nccwpck_require__(591)
+const {
+  asChindings,
+  asJson,
+  buildFormatters,
+  stringify
+} = __nccwpck_require__(1521)
+const {
+  version
+} = __nccwpck_require__(8578)
+const redaction = __nccwpck_require__(5164)
+
+// note: use of class is satirical
+// https://github.com/pinojs/pino/pull/433#pullrequestreview-127703127
+const constructor = class Pino {}
+const prototype = {
+  constructor,
+  child,
+  bindings,
+  setBindings,
+  flush,
+  isLevelEnabled,
+  version,
+  get level () { return this[getLevelSym]() },
+  set level (lvl) { this[setLevelSym](lvl) },
+  get levelVal () { return this[levelValSym] },
+  set levelVal (n) { throw Error('levelVal is read-only') },
+  [lsCacheSym]: initialLsCache,
+  [writeSym]: write,
+  [asJsonSym]: asJson,
+  [getLevelSym]: getLevel,
+  [setLevelSym]: setLevel
+}
+
+Object.setPrototypeOf(prototype, EventEmitter.prototype)
+
+// exporting and consuming the prototype object using factory pattern fixes scoping issues with getters when serializing
+module.exports = function () {
+  return Object.create(prototype)
+}
+
+const resetChildingsFormatter = bindings => bindings
+function child (bindings, options) {
+  if (!bindings) {
+    throw Error('missing bindings for child Pino')
+  }
+  options = options || {} // default options to empty object
+  const serializers = this[serializersSym]
+  const formatters = this[formattersSym]
+  const instance = Object.create(this)
+
+  if (options.hasOwnProperty('serializers') === true) {
+    instance[serializersSym] = Object.create(null)
+
+    for (const k in serializers) {
+      instance[serializersSym][k] = serializers[k]
+    }
+    const parentSymbols = Object.getOwnPropertySymbols(serializers)
+    /* eslint no-var: off */
+    for (var i = 0; i < parentSymbols.length; i++) {
+      const ks = parentSymbols[i]
+      instance[serializersSym][ks] = serializers[ks]
+    }
+
+    for (const bk in options.serializers) {
+      instance[serializersSym][bk] = options.serializers[bk]
+    }
+    const bindingsSymbols = Object.getOwnPropertySymbols(options.serializers)
+    for (var bi = 0; bi < bindingsSymbols.length; bi++) {
+      const bks = bindingsSymbols[bi]
+      instance[serializersSym][bks] = options.serializers[bks]
+    }
+  } else instance[serializersSym] = serializers
+  if (options.hasOwnProperty('formatters')) {
+    const { level, bindings: chindings, log } = options.formatters
+    instance[formattersSym] = buildFormatters(
+      level || formatters.level,
+      chindings || resetChildingsFormatter,
+      log || formatters.log
+    )
+  } else {
+    instance[formattersSym] = buildFormatters(
+      formatters.level,
+      resetChildingsFormatter,
+      formatters.log
+    )
+  }
+  if (options.hasOwnProperty('customLevels') === true) {
+    assertNoLevelCollisions(this.levels, options.customLevels)
+    instance.levels = mappings(options.customLevels, instance[useOnlyCustomLevelsSym])
+    genLsCache(instance)
+  }
+
+  // redact must place before asChindings and only replace if exist
+  if ((typeof options.redact === 'object' && options.redact !== null) || Array.isArray(options.redact)) {
+    instance.redact = options.redact // replace redact directly
+    const stringifiers = redaction(instance.redact, stringify)
+    const formatOpts = { stringify: stringifiers[redactFmtSym] }
+    instance[stringifySym] = stringify
+    instance[stringifiersSym] = stringifiers
+    instance[formatOptsSym] = formatOpts
+  }
+
+  instance[chindingsSym] = asChindings(instance, bindings)
+  const childLevel = options.level || this.level
+  instance[setLevelSym](childLevel)
+
+  return instance
+}
+
+function bindings () {
+  const chindings = this[chindingsSym]
+  const chindingsJson = `{${chindings.substr(1)}}` // at least contains ,"pid":7068,"hostname":"myMac"
+  const bindingsFromJson = JSON.parse(chindingsJson)
+  delete bindingsFromJson.pid
+  delete bindingsFromJson.hostname
+  return bindingsFromJson
+}
+
+function setBindings (newBindings) {
+  const chindings = asChindings(this, newBindings)
+  this[chindingsSym] = chindings
+  delete this[parsedChindingsSym]
+}
+
+/**
+ * Default strategy for creating `mergeObject` from arguments and the result from `mixin()`.
+ * Fields from `mergeObject` have higher priority in this strategy.
+ *
+ * @param {Object} mergeObject The object a user has supplied to the logging function.
+ * @param {Object} mixinObject The result of the `mixin` method.
+ * @return {Object}
+ */
+function defaultMixinMergeStrategy (mergeObject, mixinObject) {
+  return Object.assign(mixinObject, mergeObject)
+}
+
+function write (_obj, msg, num) {
+  const t = this[timeSym]()
+  const mixin = this[mixinSym]
+  const mixinMergeStrategy = this[mixinMergeStrategySym] || defaultMixinMergeStrategy
+  let obj
+
+  if (_obj === undefined || _obj === null) {
+    obj = {}
+  } else if (_obj instanceof Error) {
+    obj = { err: _obj }
+    if (msg === undefined) {
+      msg = _obj.message
+    }
+  } else {
+    obj = _obj
+    if (msg === undefined && _obj.err) {
+      msg = _obj.err.message
+    }
+  }
+
+  if (mixin) {
+    obj = mixinMergeStrategy(obj, mixin(obj, num))
+  }
+
+  const s = this[asJsonSym](obj, msg, num, t)
+
+  const stream = this[streamSym]
+  if (stream[needsMetadataGsym] === true) {
+    stream.lastLevel = num
+    stream.lastObj = obj
+    stream.lastMsg = msg
+    stream.lastTime = t.slice(this[timeSliceIndexSym])
+    stream.lastLogger = this // for child loggers
+  }
+  stream.write(s)
+}
+
+function noop () {}
+
+function flush () {
+  const stream = this[streamSym]
+  if ('flush' in stream) stream.flush(noop)
+}
+
+
+/***/ }),
+
+/***/ 5164:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const fastRedact = __nccwpck_require__(4826)
+const { redactFmtSym, wildcardFirstSym } = __nccwpck_require__(3957)
+const { rx, validator } = fastRedact
+
+const validate = validator({
+  ERR_PATHS_MUST_BE_STRINGS: () => 'pino – redacted paths must be strings',
+  ERR_INVALID_PATH: (s) => `pino – redact paths array contains an invalid path (${s})`
+})
+
+const CENSOR = '[Redacted]'
+const strict = false // TODO should this be configurable?
+
+function redaction (opts, serialize) {
+  const { paths, censor } = handle(opts)
+
+  const shape = paths.reduce((o, str) => {
+    rx.lastIndex = 0
+    const first = rx.exec(str)
+    const next = rx.exec(str)
+
+    // ns is the top-level path segment, brackets + quoting removed.
+    let ns = first[1] !== undefined
+      ? first[1].replace(/^(?:"|'|`)(.*)(?:"|'|`)$/, '$1')
+      : first[0]
+
+    if (ns === '*') {
+      ns = wildcardFirstSym
+    }
+
+    // top level key:
+    if (next === null) {
+      o[ns] = null
+      return o
+    }
+
+    // path with at least two segments:
+    // if ns is already redacted at the top level, ignore lower level redactions
+    if (o[ns] === null) {
+      return o
+    }
+
+    const { index } = next
+    const nextPath = `${str.substr(index, str.length - 1)}`
+
+    o[ns] = o[ns] || []
+
+    // shape is a mix of paths beginning with literal values and wildcard
+    // paths [ "a.b.c", "*.b.z" ] should reduce to a shape of
+    // { "a": [ "b.c", "b.z" ], *: [ "b.z" ] }
+    // note: "b.z" is in both "a" and * arrays because "a" matches the wildcard.
+    // (* entry has wildcardFirstSym as key)
+    if (ns !== wildcardFirstSym && o[ns].length === 0) {
+      // first time ns's get all '*' redactions so far
+      o[ns].push(...(o[wildcardFirstSym] || []))
+    }
+
+    if (ns === wildcardFirstSym) {
+      // new * path gets added to all previously registered literal ns's.
+      Object.keys(o).forEach(function (k) {
+        if (o[k]) {
+          o[k].push(nextPath)
+        }
+      })
+    }
+
+    o[ns].push(nextPath)
+    return o
+  }, {})
+
+  // the redactor assigned to the format symbol key
+  // provides top level redaction for instances where
+  // an object is interpolated into the msg string
+  const result = {
+    [redactFmtSym]: fastRedact({ paths, censor, serialize, strict })
+  }
+
+  const topCensor = (...args) => {
+    return typeof censor === 'function' ? serialize(censor(...args)) : serialize(censor)
+  }
+
+  return [...Object.keys(shape), ...Object.getOwnPropertySymbols(shape)].reduce((o, k) => {
+    // top level key:
+    if (shape[k] === null) {
+      o[k] = (value) => topCensor(value, [k])
+    } else {
+      const wrappedCensor = typeof censor === 'function'
+        ? (value, path) => {
+            return censor(value, [k, ...path])
+          }
+        : censor
+      o[k] = fastRedact({
+        paths: shape[k],
+        censor: wrappedCensor,
+        serialize,
+        strict
+      })
+    }
+    return o
+  }, result)
+}
+
+function handle (opts) {
+  if (Array.isArray(opts)) {
+    opts = { paths: opts, censor: CENSOR }
+    validate(opts)
+    return opts
+  }
+  let { paths, censor = CENSOR, remove } = opts
+  if (Array.isArray(paths) === false) { throw Error('pino – redact must contain an array of strings') }
+  if (remove === true) censor = undefined
+  validate({ paths, censor })
+
+  return { paths, censor }
+}
+
+module.exports = redaction
+
+
+/***/ }),
+
+/***/ 3957:
+/***/ ((module) => {
+
+"use strict";
+
+
+const setLevelSym = Symbol('pino.setLevel')
+const getLevelSym = Symbol('pino.getLevel')
+const levelValSym = Symbol('pino.levelVal')
+const useLevelLabelsSym = Symbol('pino.useLevelLabels')
+const useOnlyCustomLevelsSym = Symbol('pino.useOnlyCustomLevels')
+const mixinSym = Symbol('pino.mixin')
+
+const lsCacheSym = Symbol('pino.lsCache')
+const chindingsSym = Symbol('pino.chindings')
+const parsedChindingsSym = Symbol('pino.parsedChindings')
+
+const asJsonSym = Symbol('pino.asJson')
+const writeSym = Symbol('pino.write')
+const redactFmtSym = Symbol('pino.redactFmt')
+
+const timeSym = Symbol('pino.time')
+const timeSliceIndexSym = Symbol('pino.timeSliceIndex')
+const streamSym = Symbol('pino.stream')
+const stringifySym = Symbol('pino.stringify')
+const stringifySafeSym = Symbol('pino.stringifySafe')
+const stringifiersSym = Symbol('pino.stringifiers')
+const endSym = Symbol('pino.end')
+const formatOptsSym = Symbol('pino.formatOpts')
+const messageKeySym = Symbol('pino.messageKey')
+const nestedKeySym = Symbol('pino.nestedKey')
+const nestedKeyStrSym = Symbol('pino.nestedKeyStr')
+const mixinMergeStrategySym = Symbol('pino.mixinMergeStrategy')
+
+const wildcardFirstSym = Symbol('pino.wildcardFirst')
+
+// public symbols, no need to use the same pino
+// version for these
+const serializersSym = Symbol.for('pino.serializers')
+const formattersSym = Symbol.for('pino.formatters')
+const hooksSym = Symbol.for('pino.hooks')
+const needsMetadataGsym = Symbol.for('pino.metadata')
+
+module.exports = {
+  setLevelSym,
+  getLevelSym,
+  levelValSym,
+  useLevelLabelsSym,
+  mixinSym,
+  lsCacheSym,
+  chindingsSym,
+  parsedChindingsSym,
+  asJsonSym,
+  writeSym,
+  serializersSym,
+  redactFmtSym,
+  timeSym,
+  timeSliceIndexSym,
+  streamSym,
+  stringifySym,
+  stringifySafeSym,
+  stringifiersSym,
+  endSym,
+  formatOptsSym,
+  messageKeySym,
+  nestedKeySym,
+  wildcardFirstSym,
+  needsMetadataGsym,
+  useOnlyCustomLevelsSym,
+  formattersSym,
+  hooksSym,
+  nestedKeyStrSym,
+  mixinMergeStrategySym
+}
+
+
+/***/ }),
+
+/***/ 1866:
+/***/ ((module) => {
+
+"use strict";
+
+
+const nullTime = () => ''
+
+const epochTime = () => `,"time":${Date.now()}`
+
+const unixTime = () => `,"time":${Math.round(Date.now() / 1000.0)}`
+
+const isoTime = () => `,"time":"${new Date(Date.now()).toISOString()}"` // using Date.now() for testability
+
+module.exports = { nullTime, epochTime, unixTime, isoTime }
+
+
+/***/ }),
+
+/***/ 1521:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+/* eslint no-prototype-builtins: 0 */
+
+const format = __nccwpck_require__(5933)
+const { mapHttpRequest, mapHttpResponse } = __nccwpck_require__(2571)
+const SonicBoom = __nccwpck_require__(3460)
+const warning = __nccwpck_require__(4735)
+const {
+  lsCacheSym,
+  chindingsSym,
+  parsedChindingsSym,
+  writeSym,
+  serializersSym,
+  formatOptsSym,
+  endSym,
+  stringifiersSym,
+  stringifySym,
+  stringifySafeSym,
+  wildcardFirstSym,
+  needsMetadataGsym,
+  redactFmtSym,
+  streamSym,
+  nestedKeySym,
+  formattersSym,
+  messageKeySym,
+  nestedKeyStrSym
+} = __nccwpck_require__(3957)
+const { isMainThread } = __nccwpck_require__(5013)
+const transport = __nccwpck_require__(5763)
+
+function noop () {}
+
+function genLog (level, hook) {
+  if (!hook) return LOG
+
+  return function hookWrappedLog (...args) {
+    hook.call(this, args, LOG, level)
+  }
+
+  function LOG (o, ...n) {
+    if (typeof o === 'object') {
+      let msg = o
+      if (o !== null) {
+        if (o.method && o.headers && o.socket) {
+          o = mapHttpRequest(o)
+        } else if (typeof o.setHeader === 'function') {
+          o = mapHttpResponse(o)
+        }
+      }
+      let formatParams
+      if (msg === null && n.length === 0) {
+        formatParams = [null]
+      } else {
+        msg = n.shift()
+        formatParams = n
+      }
+      this[writeSym](o, format(msg, formatParams, this[formatOptsSym]), level)
+    } else {
+      this[writeSym](null, format(o, n, this[formatOptsSym]), level)
+    }
+  }
+}
+
+// magically escape strings for json
+// relying on their charCodeAt
+// everything below 32 needs JSON.stringify()
+// 34 and 92 happens all the time, so we
+// have a fast case for them
+function asString (str) {
+  let result = ''
+  let last = 0
+  let found = false
+  let point = 255
+  const l = str.length
+  if (l > 100) {
+    return JSON.stringify(str)
+  }
+  for (var i = 0; i < l && point >= 32; i++) {
+    point = str.charCodeAt(i)
+    if (point === 34 || point === 92) {
+      result += str.slice(last, i) + '\\'
+      last = i
+      found = true
+    }
+  }
+  if (!found) {
+    result = str
+  } else {
+    result += str.slice(last)
+  }
+  return point < 32 ? JSON.stringify(str) : '"' + result + '"'
+}
+
+function asJson (obj, msg, num, time) {
+  const stringify = this[stringifySym]
+  const stringifySafe = this[stringifySafeSym]
+  const stringifiers = this[stringifiersSym]
+  const end = this[endSym]
+  const chindings = this[chindingsSym]
+  const serializers = this[serializersSym]
+  const formatters = this[formattersSym]
+  const messageKey = this[messageKeySym]
+  let data = this[lsCacheSym][num] + time
+
+  // we need the child bindings added to the output first so instance logged
+  // objects can take precedence when JSON.parse-ing the resulting log line
+  data = data + chindings
+
+  let value
+  if (formatters.log) {
+    obj = formatters.log(obj)
+  }
+  const wildcardStringifier = stringifiers[wildcardFirstSym]
+  let propStr = ''
+  for (const key in obj) {
+    value = obj[key]
+    if (Object.prototype.hasOwnProperty.call(obj, key) && value !== undefined) {
+      value = serializers[key] ? serializers[key](value) : value
+
+      const stringifier = stringifiers[key] || wildcardStringifier
+
+      switch (typeof value) {
+        case 'undefined':
+        case 'function':
+          continue
+        case 'number':
+          /* eslint no-fallthrough: "off" */
+          if (Number.isFinite(value) === false) {
+            value = null
+          }
+        // this case explicitly falls through to the next one
+        case 'boolean':
+          if (stringifier) value = stringifier(value)
+          break
+        case 'string':
+          value = (stringifier || asString)(value)
+          break
+        default:
+          value = (stringifier || stringify)(value, stringifySafe)
+      }
+      if (value === undefined) continue
+      propStr += ',"' + key + '":' + value
+    }
+  }
+
+  let msgStr = ''
+  if (msg !== undefined) {
+    value = serializers[messageKey] ? serializers[messageKey](msg) : msg
+    const stringifier = stringifiers[messageKey] || wildcardStringifier
+
+    switch (typeof value) {
+      case 'function':
+        break
+      case 'number':
+        /* eslint no-fallthrough: "off" */
+        if (Number.isFinite(value) === false) {
+          value = null
+        }
+      // this case explicitly falls through to the next one
+      case 'boolean':
+        if (stringifier) value = stringifier(value)
+        msgStr = ',"' + messageKey + '":' + value
+        break
+      case 'string':
+        value = (stringifier || asString)(value)
+        msgStr = ',"' + messageKey + '":' + value
+        break
+      default:
+        value = (stringifier || stringify)(value, stringifySafe)
+        msgStr = ',"' + messageKey + '":' + value
+    }
+  }
+
+  if (this[nestedKeySym] && propStr) {
+    // place all the obj properties under the specified key
+    // the nested key is already formatted from the constructor
+    return data + this[nestedKeyStrSym] + propStr.slice(1) + '}' + msgStr + end
+  } else {
+    return data + propStr + msgStr + end
+  }
+}
+
+function asChindings (instance, bindings) {
+  let value
+  let data = instance[chindingsSym]
+  const stringify = instance[stringifySym]
+  const stringifySafe = instance[stringifySafeSym]
+  const stringifiers = instance[stringifiersSym]
+  const wildcardStringifier = stringifiers[wildcardFirstSym]
+  const serializers = instance[serializersSym]
+  const formatter = instance[formattersSym].bindings
+  bindings = formatter(bindings)
+
+  for (const key in bindings) {
+    value = bindings[key]
+    const valid = key !== 'level' &&
+      key !== 'serializers' &&
+      key !== 'formatters' &&
+      key !== 'customLevels' &&
+      bindings.hasOwnProperty(key) &&
+      value !== undefined
+    if (valid === true) {
+      value = serializers[key] ? serializers[key](value) : value
+      value = (stringifiers[key] || wildcardStringifier || stringify)(value, stringifySafe)
+      if (value === undefined) continue
+      data += ',"' + key + '":' + value
+    }
+  }
+  return data
+}
+
+function getPrettyStream (opts, prettifier, dest, instance) {
+  if (prettifier && typeof prettifier === 'function') {
+    prettifier = prettifier.bind(instance)
+    return prettifierMetaWrapper(prettifier(opts), dest, opts)
+  }
+  try {
+    const prettyFactory = __nccwpck_require__(1462).prettyFactory
+    prettyFactory.asMetaWrapper = prettifierMetaWrapper
+    return prettifierMetaWrapper(prettyFactory(opts), dest, opts)
+  } catch (e) {
+    if (e.message.startsWith("Cannot find module 'pino-pretty'")) {
+      throw Error('Missing `pino-pretty` module: `pino-pretty` must be installed separately')
+    };
+    throw e
+  }
+}
+
+function prettifierMetaWrapper (pretty, dest, opts) {
+  opts = Object.assign({ suppressFlushSyncWarning: false }, opts)
+  let warned = false
+  return {
+    [needsMetadataGsym]: true,
+    lastLevel: 0,
+    lastMsg: null,
+    lastObj: null,
+    lastLogger: null,
+    flushSync () {
+      if (opts.suppressFlushSyncWarning || warned) {
+        return
+      }
+      warned = true
+      setMetadataProps(dest, this)
+      dest.write(pretty(Object.assign({
+        level: 40, // warn
+        msg: 'pino.final with prettyPrint does not support flushing',
+        time: Date.now()
+      }, this.chindings())))
+    },
+    chindings () {
+      const lastLogger = this.lastLogger
+      let chindings = null
+
+      // protection against flushSync being called before logging
+      // anything
+      if (!lastLogger) {
+        return null
+      }
+
+      if (lastLogger.hasOwnProperty(parsedChindingsSym)) {
+        chindings = lastLogger[parsedChindingsSym]
+      } else {
+        chindings = JSON.parse('{' + lastLogger[chindingsSym].substr(1) + '}')
+        lastLogger[parsedChindingsSym] = chindings
+      }
+
+      return chindings
+    },
+    write (chunk) {
+      const lastLogger = this.lastLogger
+      const chindings = this.chindings()
+
+      let time = this.lastTime
+
+      /* istanbul ignore next */
+      if (typeof time === 'number') {
+        // do nothing!
+      } else if (time.match(/^\d+/)) {
+        time = parseInt(time)
+      } else {
+        time = time.slice(1, -1)
+      }
+
+      const lastObj = this.lastObj
+      const lastMsg = this.lastMsg
+      const errorProps = null
+
+      const formatters = lastLogger[formattersSym]
+      const formattedObj = formatters.log ? formatters.log(lastObj) : lastObj
+
+      const messageKey = lastLogger[messageKeySym]
+      if (lastMsg && formattedObj && !Object.prototype.hasOwnProperty.call(formattedObj, messageKey)) {
+        formattedObj[messageKey] = lastMsg
+      }
+
+      const obj = Object.assign({
+        level: this.lastLevel,
+        time
+      }, formattedObj, errorProps)
+
+      const serializers = lastLogger[serializersSym]
+      const keys = Object.keys(serializers)
+
+      for (var i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        if (obj[key] !== undefined) {
+          obj[key] = serializers[key](obj[key])
+        }
+      }
+
+      for (const key in chindings) {
+        if (!obj.hasOwnProperty(key)) {
+          obj[key] = chindings[key]
+        }
+      }
+
+      const stringifiers = lastLogger[stringifiersSym]
+      const redact = stringifiers[redactFmtSym]
+
+      const formatted = pretty(typeof redact === 'function' ? redact(obj) : obj)
+      if (formatted === undefined) return
+
+      setMetadataProps(dest, this)
+      dest.write(formatted)
+    }
+  }
+}
+
+function hasBeenTampered (stream) {
+  return stream.write !== stream.constructor.prototype.write
+}
+
+function buildSafeSonicBoom (opts) {
+  const stream = new SonicBoom(opts)
+  stream.on('error', filterBrokenPipe)
+  // if we are sync: false, we must flush on exit
+  if (!opts.sync && isMainThread) {
+    setupOnExit(stream)
+  }
+  return stream
+
+  function filterBrokenPipe (err) {
+    // TODO verify on Windows
+    if (err.code === 'EPIPE') {
+      // If we get EPIPE, we should stop logging here
+      // however we have no control to the consumer of
+      // SonicBoom, so we just overwrite the write method
+      stream.write = noop
+      stream.end = noop
+      stream.flushSync = noop
+      stream.destroy = noop
+      return
+    }
+    stream.removeListener('error', filterBrokenPipe)
+    stream.emit('error', err)
+  }
+}
+
+function setupOnExit (stream) {
+  /* istanbul ignore next */
+  if (global.WeakRef && global.WeakMap && global.FinalizationRegistry) {
+    // This is leak free, it does not leave event handlers
+    const onExit = __nccwpck_require__(9660)
+
+    onExit.register(stream, autoEnd)
+
+    stream.on('close', function () {
+      onExit.unregister(stream)
+    })
+  }
+}
+
+function autoEnd (stream, eventName) {
+  // This check is needed only on some platforms
+  /* istanbul ignore next */
+  if (stream.destroyed) {
+    return
+  }
+
+  if (eventName === 'beforeExit') {
+    // We still have an event loop, let's use it
+    stream.flush()
+    stream.on('drain', function () {
+      stream.end()
+    })
+  } else {
+    // We do not have an event loop, so flush synchronously
+    stream.flushSync()
+  }
+}
+
+function createArgsNormalizer (defaultOptions) {
+  return function normalizeArgs (instance, caller, opts = {}, stream) {
+    // support stream as a string
+    if (typeof opts === 'string') {
+      stream = buildSafeSonicBoom({ dest: opts, sync: true })
+      opts = {}
+    } else if (typeof stream === 'string') {
+      if (opts && opts.transport) {
+        throw Error('only one of option.transport or stream can be specified')
+      }
+      stream = buildSafeSonicBoom({ dest: stream, sync: true })
+    } else if (opts instanceof SonicBoom || opts.writable || opts._writableState) {
+      stream = opts
+      opts = {}
+    } else if (opts.transport) {
+      if (opts.transport instanceof SonicBoom || opts.transport.writable || opts.transport._writableState) {
+        throw Error('option.transport do not allow stream, please pass to option directly. e.g. pino(transport)')
+      }
+      if (opts.transport.targets && opts.transport.targets.length && opts.formatters && typeof opts.formatters.level === 'function') {
+        throw Error('option.transport.targets do not allow custom level formatters')
+      }
+
+      let customLevels
+      if (opts.customLevels) {
+        customLevels = opts.useOnlyCustomLevels ? opts.customLevels : Object.assign({}, opts.levels, opts.customLevels)
+      }
+      stream = transport({ caller, ...opts.transport, levels: customLevels })
+    }
+    opts = Object.assign({}, defaultOptions, opts)
+    opts.serializers = Object.assign({}, defaultOptions.serializers, opts.serializers)
+    opts.formatters = Object.assign({}, defaultOptions.formatters, opts.formatters)
+
+    if ('onTerminated' in opts) {
+      throw Error('The onTerminated option has been removed, use pino.final instead')
+    }
+    if ('changeLevelName' in opts) {
+      process.emitWarning(
+        'The changeLevelName option is deprecated and will be removed in v7. Use levelKey instead.',
+        { code: 'changeLevelName_deprecation' }
+      )
+      opts.levelKey = opts.changeLevelName
+      delete opts.changeLevelName
+    }
+    const { enabled, prettyPrint, prettifier, messageKey } = opts
+    if (enabled === false) opts.level = 'silent'
+    stream = stream || process.stdout
+    if (stream === process.stdout && stream.fd >= 0 && !hasBeenTampered(stream)) {
+      stream = buildSafeSonicBoom({ fd: stream.fd, sync: true })
+    }
+    if (prettyPrint) {
+      warning.emit('PINODEP008')
+      const prettyOpts = Object.assign({ messageKey }, prettyPrint)
+      stream = getPrettyStream(prettyOpts, prettifier, stream, instance)
+    }
+    return { opts, stream }
+  }
+}
+
+function final (logger, handler) {
+  const major = Number(process.versions.node.split('.')[0])
+  if (major >= 14) warning.emit('PINODEP009')
+
+  if (typeof logger === 'undefined' || typeof logger.child !== 'function') {
+    throw Error('expected a pino logger instance')
+  }
+  const hasHandler = (typeof handler !== 'undefined')
+  if (hasHandler && typeof handler !== 'function') {
+    throw Error('if supplied, the handler parameter should be a function')
+  }
+  const stream = logger[streamSym]
+  if (typeof stream.flushSync !== 'function') {
+    throw Error('final requires a stream that has a flushSync method, such as pino.destination')
+  }
+
+  const finalLogger = new Proxy(logger, {
+    get: (logger, key) => {
+      if (key in logger.levels.values) {
+        return (...args) => {
+          logger[key](...args)
+          stream.flushSync()
+        }
+      }
+      return logger[key]
+    }
+  })
+
+  if (!hasHandler) {
+    try {
+      stream.flushSync()
+    } catch {
+      // it's too late to wait for the stream to be ready
+      // because this is a final tick scenario.
+      // in practice there shouldn't be a situation where it isn't
+      // however, swallow the error just in case (and for easier testing)
+    }
+    return finalLogger
+  }
+
+  return (err = null, ...args) => {
+    try {
+      stream.flushSync()
+    } catch (e) {
+      // it's too late to wait for the stream to be ready
+      // because this is a final tick scenario.
+      // in practice there shouldn't be a situation where it isn't
+      // however, swallow the error just in case (and for easier testing)
+    }
+    return handler(err, finalLogger, ...args)
+  }
+}
+
+function stringify (obj, stringifySafeFn) {
+  try {
+    return JSON.stringify(obj)
+  } catch (_) {
+    try {
+      const stringify = stringifySafeFn || this[stringifySafeSym]
+      return stringify(obj)
+    } catch (_) {
+      return '"[unable to serialize, circular reference is too complex to analyze]"'
+    }
+  }
+}
+
+function buildFormatters (level, bindings, log) {
+  return {
+    level,
+    bindings,
+    log
+  }
+}
+
+function setMetadataProps (dest, that) {
+  if (dest[needsMetadataGsym] === true) {
+    dest.lastLevel = that.lastLevel
+    dest.lastMsg = that.lastMsg
+    dest.lastObj = that.lastObj
+    dest.lastTime = that.lastTime
+    dest.lastLogger = that.lastLogger
+  }
+}
+
+/**
+ * Convert a string integer file descriptor to a proper native integer
+ * file descriptor.
+ *
+ * @param {string} destination The file descriptor string to attempt to convert.
+ *
+ * @returns {Number}
+ */
+function normalizeDestFileDescriptor (destination) {
+  const fd = Number(destination)
+  if (typeof destination === 'string' && Number.isFinite(fd)) {
+    return fd
+  }
+  return destination
+}
+
+module.exports = {
+  noop,
+  buildSafeSonicBoom,
+  getPrettyStream,
+  asChindings,
+  asJson,
+  genLog,
+  createArgsNormalizer,
+  final,
+  stringify,
+  buildFormatters,
+  normalizeDestFileDescriptor
+}
+
+
+/***/ }),
+
+/***/ 5763:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { createRequire } = __nccwpck_require__(2282)
+const getCallers = __nccwpck_require__(7453)
+const { join, isAbsolute } = __nccwpck_require__(5622)
+const sleep = __nccwpck_require__(6950)
+
+let onExit
+
+if (global.WeakRef && global.WeakMap && global.FinalizationRegistry) {
+  // This require MUST be top level otherwise the transport would
+  // not work from within Jest as it hijacks require.
+  onExit = __nccwpck_require__(9660)
+}
+
+const ThreadStream = __nccwpck_require__(8366)
+
+function setupOnExit (stream) {
+  /* istanbul ignore next */
+  if (onExit) {
+    // This is leak free, it does not leave event handlers
+    onExit.register(stream, autoEnd)
+
+    stream.on('close', function () {
+      onExit.unregister(stream)
+    })
+  } else {
+    const fn = autoEnd.bind(null, stream)
+    process.once('beforeExit', fn)
+    process.once('exit', fn)
+
+    stream.on('close', function () {
+      process.removeListener('beforeExit', fn)
+      process.removeListener('exit', fn)
+    })
+  }
+}
+
+function buildStream (filename, workerData, workerOpts) {
+  const stream = new ThreadStream({
+    filename,
+    workerData,
+    workerOpts
+  })
+
+  stream.on('ready', onReady)
+  stream.on('close', function () {
+    process.removeListener('exit', onExit)
+  })
+
+  process.on('exit', onExit)
+
+  function onReady () {
+    process.removeListener('exit', onExit)
+    stream.unref()
+
+    if (workerOpts.autoEnd !== false) {
+      setupOnExit(stream)
+    }
+  }
+
+  function onExit () {
+    if (stream.closed) {
+      return
+    }
+    stream.flushSync()
+    // Apparently there is a very sporadic race condition
+    // that in certain OS would prevent the messages to be flushed
+    // because the thread might not have been created still.
+    // Unfortunately we need to sleep(100) in this case.
+    sleep(100)
+    stream.end()
+  }
+
+  return stream
+}
+
+function autoEnd (stream) {
+  stream.ref()
+  stream.flushSync()
+  stream.end()
+  stream.once('close', function () {
+    stream.unref()
+  })
+}
+
+function transport (fullOptions) {
+  const { pipeline, targets, levels, options = {}, worker = {}, caller = getCallers() } = fullOptions
+
+  // Backwards compatibility
+  const callers = typeof caller === 'string' ? [caller] : caller
+
+  // This will be eventually modified by bundlers
+  const bundlerOverrides = '__bundlerPathsOverrides' in globalThis ? globalThis.__bundlerPathsOverrides : {}
+
+  let target = fullOptions.target
+
+  if (target && targets) {
+    throw new Error('only one of target or targets can be specified')
+  }
+
+  if (targets) {
+    target = bundlerOverrides['pino-worker'] || __nccwpck_require__.ab + "worker.js"
+    options.targets = targets.map((dest) => {
+      return {
+        ...dest,
+        target: fixTarget(dest.target)
+      }
+    })
+  } else if (pipeline) {
+    target = bundlerOverrides['pino-pipeline-worker'] || __nccwpck_require__.ab + "worker-pipeline.js"
+    options.targets = pipeline.map((dest) => {
+      return {
+        ...dest,
+        target: fixTarget(dest.target)
+      }
+    })
+  }
+
+  if (levels) {
+    options.levels = levels
+  }
+
+  return buildStream(fixTarget(target), options, worker)
+
+  function fixTarget (origin) {
+    origin = bundlerOverrides[origin] || origin
+
+    if (isAbsolute(origin) || origin.indexOf('file://') === 0) {
+      return origin
+    }
+
+    if (origin === 'pino/file') {
+      return __nccwpck_require__.ab + "file.js"
+    }
+
+    let fixTarget
+
+    for (const filePath of callers) {
+      try {
+        fixTarget = createRequire(filePath).resolve(origin)
+        break
+      } catch (err) {
+        // Silent catch
+        continue
+      }
+    }
+
+    if (!fixTarget) {
+      throw new Error(`unable to determine transport target for "${origin}"`)
+    }
+
+    return fixTarget
+  }
+}
+
+module.exports = transport
+
+
+/***/ }),
+
+/***/ 9608:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+/* eslint no-prototype-builtins: 0 */
+const os = __nccwpck_require__(2087)
+const stdSerializers = __nccwpck_require__(2571)
+const caller = __nccwpck_require__(7453)
+const redaction = __nccwpck_require__(5164)
+const time = __nccwpck_require__(1866)
+const proto = __nccwpck_require__(6899)
+const symbols = __nccwpck_require__(3957)
+const { configure } = __nccwpck_require__(7560)
+const { assertDefaultLevelFound, mappings, genLsCache, levels } = __nccwpck_require__(591)
+const {
+  createArgsNormalizer,
+  asChindings,
+  final,
+  buildSafeSonicBoom,
+  buildFormatters,
+  stringify,
+  normalizeDestFileDescriptor,
+  noop
+} = __nccwpck_require__(1521)
+const { version } = __nccwpck_require__(8578)
+const {
+  chindingsSym,
+  redactFmtSym,
+  serializersSym,
+  timeSym,
+  timeSliceIndexSym,
+  streamSym,
+  stringifySym,
+  stringifySafeSym,
+  stringifiersSym,
+  setLevelSym,
+  endSym,
+  formatOptsSym,
+  messageKeySym,
+  nestedKeySym,
+  mixinSym,
+  useOnlyCustomLevelsSym,
+  formattersSym,
+  hooksSym,
+  nestedKeyStrSym,
+  mixinMergeStrategySym
+} = symbols
+const { epochTime, nullTime } = time
+const { pid } = process
+const hostname = os.hostname()
+const defaultErrorSerializer = stdSerializers.err
+const defaultOptions = {
+  level: 'info',
+  levels,
+  messageKey: 'msg',
+  nestedKey: null,
+  enabled: true,
+  prettyPrint: false,
+  base: { pid, hostname },
+  serializers: Object.assign(Object.create(null), {
+    err: defaultErrorSerializer
+  }),
+  formatters: Object.assign(Object.create(null), {
+    bindings (bindings) {
+      return bindings
+    },
+    level (label, number) {
+      return { level: number }
+    }
+  }),
+  hooks: {
+    logMethod: undefined
+  },
+  timestamp: epochTime,
+  name: undefined,
+  redact: null,
+  customLevels: null,
+  useOnlyCustomLevels: false,
+  depthLimit: 5,
+  edgeLimit: 100
+}
+
+const normalize = createArgsNormalizer(defaultOptions)
+
+const serializers = Object.assign(Object.create(null), stdSerializers)
+
+function pino (...args) {
+  const instance = {}
+  const { opts, stream } = normalize(instance, caller(), ...args)
+  const {
+    redact,
+    crlf,
+    serializers,
+    timestamp,
+    messageKey,
+    nestedKey,
+    base,
+    name,
+    level,
+    customLevels,
+    mixin,
+    mixinMergeStrategy,
+    useOnlyCustomLevels,
+    formatters,
+    hooks,
+    depthLimit,
+    edgeLimit
+  } = opts
+
+  const stringifySafe = configure({
+    maximumDepth: depthLimit,
+    maximumBreadth: edgeLimit
+  })
+
+  const allFormatters = buildFormatters(
+    formatters.level,
+    formatters.bindings,
+    formatters.log
+  )
+
+  const stringifiers = redact ? redaction(redact, stringify) : {}
+  const stringifyFn = stringify.bind({
+    [stringifySafeSym]: stringifySafe
+  })
+  const formatOpts = redact
+    ? { stringify: stringifiers[redactFmtSym] }
+    : { stringify: stringifyFn }
+  const end = '}' + (crlf ? '\r\n' : '\n')
+  const coreChindings = asChindings.bind(null, {
+    [chindingsSym]: '',
+    [serializersSym]: serializers,
+    [stringifiersSym]: stringifiers,
+    [stringifySym]: stringify,
+    [stringifySafeSym]: stringifySafe,
+    [formattersSym]: allFormatters
+  })
+
+  let chindings = ''
+  if (base !== null) {
+    if (name === undefined) {
+      chindings = coreChindings(base)
+    } else {
+      chindings = coreChindings(Object.assign({}, base, { name }))
+    }
+  }
+
+  const time = (timestamp instanceof Function)
+    ? timestamp
+    : (timestamp ? epochTime : nullTime)
+  const timeSliceIndex = time().indexOf(':') + 1
+
+  if (useOnlyCustomLevels && !customLevels) throw Error('customLevels is required if useOnlyCustomLevels is set true')
+  if (mixin && typeof mixin !== 'function') throw Error(`Unknown mixin type "${typeof mixin}" - expected "function"`)
+
+  assertDefaultLevelFound(level, customLevels, useOnlyCustomLevels)
+  const levels = mappings(customLevels, useOnlyCustomLevels)
+
+  Object.assign(instance, {
+    levels,
+    [useOnlyCustomLevelsSym]: useOnlyCustomLevels,
+    [streamSym]: stream,
+    [timeSym]: time,
+    [timeSliceIndexSym]: timeSliceIndex,
+    [stringifySym]: stringify,
+    [stringifySafeSym]: stringifySafe,
+    [stringifiersSym]: stringifiers,
+    [endSym]: end,
+    [formatOptsSym]: formatOpts,
+    [messageKeySym]: messageKey,
+    [nestedKeySym]: nestedKey,
+    // protect against injection
+    [nestedKeyStrSym]: nestedKey ? `,${JSON.stringify(nestedKey)}:{` : '',
+    [serializersSym]: serializers,
+    [mixinSym]: mixin,
+    [mixinMergeStrategySym]: mixinMergeStrategy,
+    [chindingsSym]: chindings,
+    [formattersSym]: allFormatters,
+    [hooksSym]: hooks,
+    silent: noop
+  })
+
+  Object.setPrototypeOf(instance, proto())
+
+  genLsCache(instance)
+
+  instance[setLevelSym](level)
+
+  return instance
+}
+
+module.exports = pino
+
+module.exports.destination = (dest = process.stdout.fd) => {
+  if (typeof dest === 'object') {
+    dest.dest = normalizeDestFileDescriptor(dest.dest || process.stdout.fd)
+    return buildSafeSonicBoom(dest)
+  } else {
+    return buildSafeSonicBoom({ dest: normalizeDestFileDescriptor(dest), minLength: 0, sync: true })
+  }
+}
+
+module.exports.transport = __nccwpck_require__(5763)
+module.exports.multistream = __nccwpck_require__(5505)
+
+module.exports.final = final
+module.exports.levels = mappings()
+module.exports.stdSerializers = serializers
+module.exports.stdTimeFunctions = Object.assign({}, time)
+module.exports.symbols = symbols
+module.exports.version = version
+
+// Enables default and name export with TypeScript and Babel
+module.exports.default = pino
+module.exports.pino = pino
+
+
+/***/ }),
+
+/***/ 5521:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { format } = __nccwpck_require__(1669)
+
+function build () {
+  const codes = {}
+  const emitted = new Map()
+
+  function create (name, code, message) {
+    if (!name) throw new Error('Warning name must not be empty')
+    if (!code) throw new Error('Warning code must not be empty')
+    if (!message) throw new Error('Warning message must not be empty')
+
+    code = code.toUpperCase()
+
+    if (codes[code] !== undefined) {
+      throw new Error(`The code '${code}' already exist`)
+    }
+
+    function buildWarnOpts (a, b, c) {
+      // more performant than spread (...) operator
+      let formatted
+      if (a && b && c) {
+        formatted = format(message, a, b, c)
+      } else if (a && b) {
+        formatted = format(message, a, b)
+      } else if (a) {
+        formatted = format(message, a)
+      } else {
+        formatted = message
+      }
+
+      return {
+        code,
+        name,
+        message: formatted
+      }
+    }
+
+    emitted.set(code, false)
+    codes[code] = buildWarnOpts
+
+    return codes[code]
+  }
+
+  function emit (code, a, b, c) {
+    if (codes[code] === undefined) throw new Error(`The code '${code}' does not exist`)
+    if (emitted.get(code) === true) return
+    emitted.set(code, true)
+
+    const warning = codes[code](a, b, c)
+    process.emitWarning(warning.message, warning.name, warning.code)
+  }
+
+  return {
+    create,
+    emit,
+    emitted
+  }
+}
+
+module.exports = build
+
+
+/***/ }),
+
+/***/ 5933:
+/***/ ((module) => {
+
+"use strict";
+
+function tryStringify (o) {
+  try { return JSON.stringify(o) } catch(e) { return '"[Circular]"' }
+}
+
+module.exports = format
+
+function format(f, args, opts) {
+  var ss = (opts && opts.stringify) || tryStringify
+  var offset = 1
+  if (typeof f === 'object' && f !== null) {
+    var len = args.length + offset
+    if (len === 1) return f
+    var objects = new Array(len)
+    objects[0] = ss(f)
+    for (var index = 1; index < len; index++) {
+      objects[index] = ss(args[index])
+    }
+    return objects.join(' ')
+  }
+  if (typeof f !== 'string') {
+    return f
+  }
+  var argLen = args.length
+  if (argLen === 0) return f
+  var str = ''
+  var a = 1 - offset
+  var lastPos = -1
+  var flen = (f && f.length) || 0
+  for (var i = 0; i < flen;) {
+    if (f.charCodeAt(i) === 37 && i + 1 < flen) {
+      lastPos = lastPos > -1 ? lastPos : 0
+      switch (f.charCodeAt(i + 1)) {
+        case 100: // 'd'
+        case 102: // 'f'
+          if (a >= argLen)
+            break
+          if (args[a] == null)  break
+          if (lastPos < i)
+            str += f.slice(lastPos, i)
+          str += Number(args[a])
+          lastPos = i + 2
+          i++
+          break
+        case 105: // 'i'
+          if (a >= argLen)
+            break
+          if (args[a] == null)  break
+          if (lastPos < i)
+            str += f.slice(lastPos, i)
+          str += Math.floor(Number(args[a]))
+          lastPos = i + 2
+          i++
+          break
+        case 79: // 'O'
+        case 111: // 'o'
+        case 106: // 'j'
+          if (a >= argLen)
+            break
+          if (args[a] === undefined) break
+          if (lastPos < i)
+            str += f.slice(lastPos, i)
+          var type = typeof args[a]
+          if (type === 'string') {
+            str += '\'' + args[a] + '\''
+            lastPos = i + 2
+            i++
+            break
+          }
+          if (type === 'function') {
+            str += args[a].name || '<anonymous>'
+            lastPos = i + 2
+            i++
+            break
+          }
+          str += ss(args[a])
+          lastPos = i + 2
+          i++
+          break
+        case 115: // 's'
+          if (a >= argLen)
+            break
+          if (lastPos < i)
+            str += f.slice(lastPos, i)
+          str += String(args[a])
+          lastPos = i + 2
+          i++
+          break
+        case 37: // '%'
+          if (lastPos < i)
+            str += f.slice(lastPos, i)
+          str += '%'
+          lastPos = i + 2
+          i++
+          a--
+          break
+      }
+      ++a
+    }
+    ++i
+  }
+  if (lastPos === -1)
+    return f
+  else if (lastPos < flen) {
+    str += f.slice(lastPos)
+  }
+
+  return str
+}
+
+
+/***/ }),
+
+/***/ 7560:
+/***/ ((module, exports) => {
+
+"use strict";
+
+
+const stringify = configure()
+
+// @ts-expect-error
+stringify.configure = configure
+// @ts-expect-error
+stringify.stringify = stringify
+
+// @ts-expect-error
+stringify.default = stringify
+
+// @ts-expect-error used for named export
+exports.stringify = stringify
+// @ts-expect-error used for named export
+exports.configure = configure
+
+module.exports = stringify
+
+// eslint-disable-next-line
+const strEscapeSequencesRegExp = /[\u0000-\u001f\u0022\u005c\ud800-\udfff]|[\ud800-\udbff](?![\udc00-\udfff])|(?:[^\ud800-\udbff]|^)[\udc00-\udfff]/
+// eslint-disable-next-line
+const strEscapeSequencesReplacer = /[\u0000-\u001f\u0022\u005c\ud800-\udfff]|[\ud800-\udbff](?![\udc00-\udfff])|(?:[^\ud800-\udbff]|^)[\udc00-\udfff]/g
+
+// Escaped special characters. Use empty strings to fill up unused entries.
+const meta = [
+  '\\u0000', '\\u0001', '\\u0002', '\\u0003', '\\u0004',
+  '\\u0005', '\\u0006', '\\u0007', '\\b', '\\t',
+  '\\n', '\\u000b', '\\f', '\\r', '\\u000e',
+  '\\u000f', '\\u0010', '\\u0011', '\\u0012', '\\u0013',
+  '\\u0014', '\\u0015', '\\u0016', '\\u0017', '\\u0018',
+  '\\u0019', '\\u001a', '\\u001b', '\\u001c', '\\u001d',
+  '\\u001e', '\\u001f', '', '', '\\"',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '', '', '',
+  '', '', '', '', '', '', '', '\\\\'
+]
+
+function escapeFn (str) {
+  if (str.length === 2) {
+    const charCode = str.charCodeAt(1)
+    return `${str[0]}\\u${charCode.toString(16)}`
+  }
+  const charCode = str.charCodeAt(0)
+  return meta.length > charCode
+    ? meta[charCode]
+    : `\\u${charCode.toString(16)}`
+}
+
+// Escape C0 control characters, double quotes, the backslash and every code
+// unit with a numeric value in the inclusive range 0xD800 to 0xDFFF.
+function strEscape (str) {
+  // Some magic numbers that worked out fine while benchmarking with v8 8.0
+  if (str.length < 5000 && !strEscapeSequencesRegExp.test(str)) {
+    return str
+  }
+  if (str.length > 100) {
+    return str.replace(strEscapeSequencesReplacer, escapeFn)
+  }
+  let result = ''
+  let last = 0
+  for (let i = 0; i < str.length; i++) {
+    const point = str.charCodeAt(i)
+    if (point === 34 || point === 92 || point < 32) {
+      result += `${str.slice(last, i)}${meta[point]}`
+      last = i + 1
+    } else if (point >= 0xd800 && point <= 0xdfff) {
+      if (point <= 0xdbff && i + 1 < str.length) {
+        const point = str.charCodeAt(i + 1)
+        if (point >= 0xdc00 && point <= 0xdfff) {
+          i++
+          continue
+        }
+      }
+      result += `${str.slice(last, i)}${`\\u${point.toString(16)}`}`
+      last = i + 1
+    }
+  }
+  result += str.slice(last)
+  return result
+}
+
+function insertSort (array) {
+  // Insertion sort is very efficient for small input sizes but it has a bad
+  // worst case complexity. Thus, use native array sort for bigger values.
+  if (array.length > 2e2) {
+    return array.sort()
+  }
+  for (let i = 1; i < array.length; i++) {
+    const currentValue = array[i]
+    let position = i
+    while (position !== 0 && array[position - 1] > currentValue) {
+      array[position] = array[position - 1]
+      position--
+    }
+    array[position] = currentValue
+  }
+  return array
+}
+
+const typedArrayPrototypeGetSymbolToStringTag =
+  Object.getOwnPropertyDescriptor(
+    Object.getPrototypeOf(
+      Object.getPrototypeOf(
+        new Uint8Array()
+      )
+    ),
+    Symbol.toStringTag
+  ).get
+
+function isTypedArrayWithEntries (value) {
+  return typedArrayPrototypeGetSymbolToStringTag.call(value) !== undefined && value.length !== 0
+}
+
+function stringifyTypedArray (array, separator, maximumBreadth) {
+  if (array.length < maximumBreadth) {
+    maximumBreadth = array.length
+  }
+  const whitespace = separator === ',' ? '' : ' '
+  let res = `"0":${whitespace}${array[0]}`
+  for (let i = 1; i < maximumBreadth; i++) {
+    res += `${separator}"${i}":${whitespace}${array[i]}`
+  }
+  return res
+}
+
+function getCircularValueOption (options) {
+  if (options && Object.prototype.hasOwnProperty.call(options, 'circularValue')) {
+    var circularValue = options.circularValue
+    if (typeof circularValue === 'string') {
+      return `"${circularValue}"`
+    }
+    if (circularValue == null) {
+      return circularValue
+    }
+    if (circularValue === Error || circularValue === TypeError) {
+      return {
+        toString () {
+          throw new TypeError('Converting circular structure to JSON')
+        }
+      }
+    }
+    throw new TypeError('The "circularValue" argument must be of type string or the value null or undefined')
+  }
+  return '"[Circular]"'
+}
+
+function getBooleanOption (options, key) {
+  if (options && Object.prototype.hasOwnProperty.call(options, key)) {
+    var value = options[key]
+    if (typeof value !== 'boolean') {
+      throw new TypeError(`The "${key}" argument must be of type boolean`)
+    }
+  }
+  return value === undefined ? true : value
+}
+
+function getPositiveIntegerOption (options, key) {
+  if (options && Object.prototype.hasOwnProperty.call(options, key)) {
+    var value = options[key]
+    if (typeof value !== 'number') {
+      throw new TypeError(`The "${key}" argument must be of type number`)
+    }
+    if (!Number.isInteger(value)) {
+      throw new TypeError(`The "${key}" argument must be an integer`)
+    }
+    if (value < 1) {
+      throw new RangeError(`The "${key}" argument must be >= 1`)
+    }
+  }
+  return value === undefined ? Infinity : value
+}
+
+function getItemCount (number) {
+  if (number === 1) {
+    return '1 item'
+  }
+  return `${number} items`
+}
+
+function getUniqueReplacerSet (replacerArray) {
+  const replacerSet = new Set()
+  for (const value of replacerArray) {
+    if (typeof value === 'string') {
+      replacerSet.add(value)
+    } else if (typeof value === 'number') {
+      replacerSet.add(String(value))
+    }
+  }
+  return replacerSet
+}
+
+function configure (options) {
+  const circularValue = getCircularValueOption(options)
+  const bigint = getBooleanOption(options, 'bigint')
+  const deterministic = getBooleanOption(options, 'deterministic')
+  const maximumDepth = getPositiveIntegerOption(options, 'maximumDepth')
+  const maximumBreadth = getPositiveIntegerOption(options, 'maximumBreadth')
+
+  function stringifyFnReplacer (key, parent, stack, replacer, spacer, indentation) {
+    let value = parent[key]
+
+    if (typeof value === 'object' && value !== null && typeof value.toJSON === 'function') {
+      value = value.toJSON(key)
+    }
+    value = replacer.call(parent, key, value)
+
+    switch (typeof value) {
+      case 'string':
+        return `"${strEscape(value)}"`
+      case 'object': {
+        if (value === null) {
+          return 'null'
+        }
+        if (stack.indexOf(value) !== -1) {
+          return circularValue
+        }
+
+        let res = ''
+        let join = ','
+        const originalIndentation = indentation
+
+        if (Array.isArray(value)) {
+          if (value.length === 0) {
+            return '[]'
+          }
+          if (maximumDepth < stack.length + 1) {
+            return '"[Array]"'
+          }
+          stack.push(value)
+          if (spacer !== '') {
+            indentation += spacer
+            res += `\n${indentation}`
+            join = `,\n${indentation}`
+          }
+          const maximumValuesToStringify = Math.min(value.length, maximumBreadth)
+          let i = 0
+          for (; i < maximumValuesToStringify - 1; i++) {
+            const tmp = stringifyFnReplacer(i, value, stack, replacer, spacer, indentation)
+            res += tmp !== undefined ? tmp : 'null'
+            res += join
+          }
+          const tmp = stringifyFnReplacer(i, value, stack, replacer, spacer, indentation)
+          res += tmp !== undefined ? tmp : 'null'
+          if (value.length - 1 > maximumBreadth) {
+            const removedKeys = value.length - maximumBreadth - 1
+            res += `${join}"... ${getItemCount(removedKeys)} not stringified"`
+          }
+          if (spacer !== '') {
+            res += `\n${originalIndentation}`
+          }
+          stack.pop()
+          return `[${res}]`
+        }
+
+        let keys = Object.keys(value)
+        const keyLength = keys.length
+        if (keyLength === 0) {
+          return '{}'
+        }
+        if (maximumDepth < stack.length + 1) {
+          return '"[Object]"'
+        }
+        let whitespace = ''
+        let separator = ''
+        if (spacer !== '') {
+          indentation += spacer
+          join = `,\n${indentation}`
+          whitespace = ' '
+        }
+        let maximumPropertiesToStringify = Math.min(keyLength, maximumBreadth)
+        if (isTypedArrayWithEntries(value)) {
+          res += stringifyTypedArray(value, join, maximumBreadth)
+          keys = keys.slice(value.length)
+          maximumPropertiesToStringify -= value.length
+          separator = join
+        }
+        if (deterministic) {
+          keys = insertSort(keys)
+        }
+        stack.push(value)
+        for (let i = 0; i < maximumPropertiesToStringify; i++) {
+          const key = keys[i]
+          const tmp = stringifyFnReplacer(key, value, stack, replacer, spacer, indentation)
+          if (tmp !== undefined) {
+            res += `${separator}"${strEscape(key)}":${whitespace}${tmp}`
+            separator = join
+          }
+        }
+        if (keyLength > maximumBreadth) {
+          const removedKeys = keyLength - maximumBreadth
+          res += `${separator}"...":${whitespace}"${getItemCount(removedKeys)} not stringified"`
+          separator = join
+        }
+        if (spacer !== '' && separator.length > 1) {
+          res = `\n${indentation}${res}\n${originalIndentation}`
+        }
+        stack.pop()
+        return `{${res}}`
+      }
+      case 'number':
+        return isFinite(value) ? String(value) : 'null'
+      case 'boolean':
+        return value === true ? 'true' : 'false'
+      case 'bigint':
+        return bigint ? String(value) : undefined
+    }
+  }
+
+  function stringifyArrayReplacer (key, value, stack, replacer, spacer, indentation) {
+    if (typeof value === 'object' && value !== null && typeof value.toJSON === 'function') {
+      value = value.toJSON(key)
+    }
+
+    switch (typeof value) {
+      case 'string':
+        return `"${strEscape(value)}"`
+      case 'object': {
+        if (value === null) {
+          return 'null'
+        }
+        if (stack.indexOf(value) !== -1) {
+          return circularValue
+        }
+
+        const originalIndentation = indentation
+        let res = ''
+        let join = ','
+
+        if (Array.isArray(value)) {
+          if (value.length === 0) {
+            return '[]'
+          }
+          if (maximumDepth < stack.length + 1) {
+            return '"[Array]"'
+          }
+          stack.push(value)
+          if (spacer !== '') {
+            indentation += spacer
+            res += `\n${indentation}`
+            join = `,\n${indentation}`
+          }
+          const maximumValuesToStringify = Math.min(value.length, maximumBreadth)
+          let i = 0
+          for (; i < maximumValuesToStringify - 1; i++) {
+            const tmp = stringifyArrayReplacer(i, value[i], stack, replacer, spacer, indentation)
+            res += tmp !== undefined ? tmp : 'null'
+            res += join
+          }
+          const tmp = stringifyArrayReplacer(i, value[i], stack, replacer, spacer, indentation)
+          res += tmp !== undefined ? tmp : 'null'
+          if (value.length - 1 > maximumBreadth) {
+            const removedKeys = value.length - maximumBreadth - 1
+            res += `${join}"... ${getItemCount(removedKeys)} not stringified"`
+          }
+          if (spacer !== '') {
+            res += `\n${originalIndentation}`
+          }
+          stack.pop()
+          return `[${res}]`
+        }
+        if (replacer.size === 0) {
+          return '{}'
+        }
+        stack.push(value)
+        let whitespace = ''
+        if (spacer !== '') {
+          indentation += spacer
+          join = `,\n${indentation}`
+          whitespace = ' '
+        }
+        let separator = ''
+        for (const key of replacer) {
+          const tmp = stringifyArrayReplacer(key, value[key], stack, replacer, spacer, indentation)
+          if (tmp !== undefined) {
+            res += `${separator}"${strEscape(key)}":${whitespace}${tmp}`
+            separator = join
+          }
+        }
+        if (spacer !== '' && separator.length > 1) {
+          res = `\n${indentation}${res}\n${originalIndentation}`
+        }
+        stack.pop()
+        return `{${res}}`
+      }
+      case 'number':
+        return isFinite(value) ? String(value) : 'null'
+      case 'boolean':
+        return value === true ? 'true' : 'false'
+      case 'bigint':
+        return bigint ? String(value) : undefined
+    }
+  }
+
+  function stringifyIndent (key, value, stack, spacer, indentation) {
+    switch (typeof value) {
+      case 'string':
+        return `"${strEscape(value)}"`
+      case 'object': {
+        if (value === null) {
+          return 'null'
+        }
+        if (typeof value.toJSON === 'function') {
+          value = value.toJSON(key)
+          // Prevent calling `toJSON` again.
+          if (typeof value !== 'object') {
+            return stringifyIndent(key, value, stack, spacer, indentation)
+          }
+          if (value === null) {
+            return 'null'
+          }
+        }
+        if (stack.indexOf(value) !== -1) {
+          return circularValue
+        }
+        const originalIndentation = indentation
+
+        if (Array.isArray(value)) {
+          if (value.length === 0) {
+            return '[]'
+          }
+          if (maximumDepth < stack.length + 1) {
+            return '"[Array]"'
+          }
+          stack.push(value)
+          indentation += spacer
+          let res = `\n${indentation}`
+          const join = `,\n${indentation}`
+          const maximumValuesToStringify = Math.min(value.length, maximumBreadth)
+          let i = 0
+          for (; i < maximumValuesToStringify - 1; i++) {
+            const tmp = stringifyIndent(i, value[i], stack, spacer, indentation)
+            res += tmp !== undefined ? tmp : 'null'
+            res += join
+          }
+          const tmp = stringifyIndent(i, value[i], stack, spacer, indentation)
+          res += tmp !== undefined ? tmp : 'null'
+          if (value.length - 1 > maximumBreadth) {
+            const removedKeys = value.length - maximumBreadth - 1
+            res += `${join}"... ${getItemCount(removedKeys)} not stringified"`
+          }
+          res += `\n${originalIndentation}`
+          stack.pop()
+          return `[${res}]`
+        }
+
+        let keys = Object.keys(value)
+        const keyLength = keys.length
+        if (keyLength === 0) {
+          return '{}'
+        }
+        if (maximumDepth < stack.length + 1) {
+          return '"[Object]"'
+        }
+        indentation += spacer
+        const join = `,\n${indentation}`
+        let res = ''
+        let separator = ''
+        let maximumPropertiesToStringify = Math.min(keyLength, maximumBreadth)
+        if (isTypedArrayWithEntries(value)) {
+          res += stringifyTypedArray(value, join, maximumBreadth)
+          keys = keys.slice(value.length)
+          maximumPropertiesToStringify -= value.length
+          separator = join
+        }
+        if (deterministic) {
+          keys = insertSort(keys)
+        }
+        stack.push(value)
+        for (let i = 0; i < maximumPropertiesToStringify; i++) {
+          const key = keys[i]
+          const tmp = stringifyIndent(key, value[key], stack, spacer, indentation)
+          if (tmp !== undefined) {
+            res += `${separator}"${strEscape(key)}": ${tmp}`
+            separator = join
+          }
+        }
+        if (keyLength > maximumBreadth) {
+          const removedKeys = keyLength - maximumBreadth
+          res += `${separator}"...": "${getItemCount(removedKeys)} not stringified"`
+          separator = join
+        }
+        if (separator !== '') {
+          res = `\n${indentation}${res}\n${originalIndentation}`
+        }
+        stack.pop()
+        return `{${res}}`
+      }
+      case 'number':
+        return isFinite(value) ? String(value) : 'null'
+      case 'boolean':
+        return value === true ? 'true' : 'false'
+      case 'bigint':
+        return bigint ? String(value) : undefined
+    }
+  }
+
+  function stringifySimple (key, value, stack) {
+    switch (typeof value) {
+      case 'string':
+        return `"${strEscape(value)}"`
+      case 'object': {
+        if (value === null) {
+          return 'null'
+        }
+        if (typeof value.toJSON === 'function') {
+          value = value.toJSON(key)
+          // Prevent calling `toJSON` again
+          if (typeof value !== 'object') {
+            return stringifySimple(key, value, stack)
+          }
+          if (value === null) {
+            return 'null'
+          }
+        }
+        if (stack.indexOf(value) !== -1) {
+          return circularValue
+        }
+
+        let res = ''
+
+        if (Array.isArray(value)) {
+          if (value.length === 0) {
+            return '[]'
+          }
+          if (maximumDepth < stack.length + 1) {
+            return '"[Array]"'
+          }
+          stack.push(value)
+          const maximumValuesToStringify = Math.min(value.length, maximumBreadth)
+          let i = 0
+          for (; i < maximumValuesToStringify - 1; i++) {
+            const tmp = stringifySimple(i, value[i], stack)
+            res += tmp !== undefined ? tmp : 'null'
+            res += ','
+          }
+          const tmp = stringifySimple(i, value[i], stack)
+          res += tmp !== undefined ? tmp : 'null'
+          if (value.length - 1 > maximumBreadth) {
+            const removedKeys = value.length - maximumBreadth - 1
+            res += `,"... ${getItemCount(removedKeys)} not stringified"`
+          }
+          stack.pop()
+          return `[${res}]`
+        }
+
+        let keys = Object.keys(value)
+        const keyLength = keys.length
+        if (keyLength === 0) {
+          return '{}'
+        }
+        if (maximumDepth < stack.length + 1) {
+          return '"[Object]"'
+        }
+        let separator = ''
+        let maximumPropertiesToStringify = Math.min(keyLength, maximumBreadth)
+        if (isTypedArrayWithEntries(value)) {
+          res += stringifyTypedArray(value, ',', maximumBreadth)
+          keys = keys.slice(value.length)
+          maximumPropertiesToStringify -= value.length
+          separator = ','
+        }
+        if (deterministic) {
+          keys = insertSort(keys)
+        }
+        stack.push(value)
+        for (let i = 0; i < maximumPropertiesToStringify; i++) {
+          const key = keys[i]
+          const tmp = stringifySimple(key, value[key], stack)
+          if (tmp !== undefined) {
+            res += `${separator}"${strEscape(key)}":${tmp}`
+            separator = ','
+          }
+        }
+        if (keyLength > maximumBreadth) {
+          const removedKeys = keyLength - maximumBreadth
+          res += `${separator}"...":"${getItemCount(removedKeys)} not stringified"`
+        }
+        stack.pop()
+        return `{${res}}`
+      }
+      case 'number':
+        return isFinite(value) ? String(value) : 'null'
+      case 'boolean':
+        return value === true ? 'true' : 'false'
+      case 'bigint':
+        return bigint ? String(value) : undefined
+    }
+  }
+
+  function stringify (value, replacer, space) {
+    if (arguments.length > 1) {
+      let spacer = ''
+      if (typeof space === 'number') {
+        spacer = ' '.repeat(Math.min(space, 10))
+      } else if (typeof space === 'string') {
+        spacer = space.slice(0, 10)
+      }
+      if (replacer != null) {
+        if (typeof replacer === 'function') {
+          return stringifyFnReplacer('', { '': value }, [], replacer, spacer, '')
+        }
+        if (Array.isArray(replacer)) {
+          return stringifyArrayReplacer('', value, [], getUniqueReplacerSet(replacer), spacer, '')
+        }
+      }
+      if (spacer.length !== 0) {
+        return stringifyIndent('', value, [], spacer, '')
+      }
+    }
+    return stringifySimple('', value, [])
+  }
+
+  return stringify
+}
+
+
+/***/ }),
+
+/***/ 3460:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const fs = __nccwpck_require__(5747)
+const EventEmitter = __nccwpck_require__(8614)
+const inherits = __nccwpck_require__(1669).inherits
+const path = __nccwpck_require__(5622)
+const sleep = __nccwpck_require__(6950)
+
+const BUSY_WRITE_TIMEOUT = 100
+
+// 16 KB. Don't write more than docker buffer size.
+// https://github.com/moby/moby/blob/513ec73831269947d38a644c278ce3cac36783b2/daemon/logger/copier.go#L13
+const MAX_WRITE = 16 * 1024
+
+function openFile (file, sonic) {
+  sonic._opening = true
+  sonic._writing = true
+  sonic._asyncDrainScheduled = false
+
+  // NOTE: 'error' and 'ready' events emitted below only relevant when sonic.sync===false
+  // for sync mode, there is no way to add a listener that will receive these
+
+  function fileOpened (err, fd) {
+    if (err) {
+      sonic._reopening = false
+      sonic._writing = false
+      sonic._opening = false
+
+      if (sonic.sync) {
+        process.nextTick(() => {
+          if (sonic.listenerCount('error') > 0) {
+            sonic.emit('error', err)
+          }
+        })
+      } else {
+        sonic.emit('error', err)
+      }
+      return
+    }
+
+    sonic.fd = fd
+    sonic.file = file
+    sonic._reopening = false
+    sonic._opening = false
+    sonic._writing = false
+
+    if (sonic.sync) {
+      process.nextTick(() => sonic.emit('ready'))
+    } else {
+      sonic.emit('ready')
+    }
+
+    if (sonic._reopening) {
+      return
+    }
+
+    // start
+    if (!sonic._writing && sonic._len > sonic.minLength && !sonic.destroyed) {
+      actualWrite(sonic)
+    }
+  }
+
+  const flags = sonic.append ? 'a' : 'w'
+  const mode = sonic.mode
+
+  if (sonic.sync) {
+    try {
+      if (sonic.mkdir) fs.mkdirSync(path.dirname(file), { recursive: true })
+      const fd = fs.openSync(file, flags, mode)
+      fileOpened(null, fd)
+    } catch (err) {
+      fileOpened(err)
+      throw err
+    }
+  } else if (sonic.mkdir) {
+    fs.mkdir(path.dirname(file), { recursive: true }, (err) => {
+      if (err) return fileOpened(err)
+      fs.open(file, flags, mode, fileOpened)
+    })
+  } else {
+    fs.open(file, flags, mode, fileOpened)
+  }
+}
+
+function SonicBoom (opts) {
+  if (!(this instanceof SonicBoom)) {
+    return new SonicBoom(opts)
+  }
+
+  let { fd, dest, minLength, maxLength, maxWrite, sync, append = true, mode, mkdir, retryEAGAIN } = opts || {}
+
+  fd = fd || dest
+
+  this._bufs = []
+  this._len = 0
+  this.fd = -1
+  this._writing = false
+  this._writingBuf = ''
+  this._ending = false
+  this._reopening = false
+  this._asyncDrainScheduled = false
+  this._hwm = Math.max(minLength || 0, 16387)
+  this.file = null
+  this.destroyed = false
+  this.minLength = minLength || 0
+  this.maxLength = maxLength || 0
+  this.maxWrite = maxWrite || MAX_WRITE
+  this.sync = sync || false
+  this.append = append || false
+  this.mode = mode
+  this.retryEAGAIN = retryEAGAIN || (() => true)
+  this.mkdir = mkdir || false
+
+  if (typeof fd === 'number') {
+    this.fd = fd
+    process.nextTick(() => this.emit('ready'))
+  } else if (typeof fd === 'string') {
+    openFile(fd, this)
+  } else {
+    throw new Error('SonicBoom supports only file descriptors and files')
+  }
+  if (this.minLength >= this.maxWrite) {
+    throw new Error(`minLength should be smaller than maxWrite (${this.maxWrite})`)
+  }
+
+  this.release = (err, n) => {
+    if (err) {
+      if (err.code === 'EAGAIN' && this.retryEAGAIN(err, this._writingBuf.length, this._len - this._writingBuf.length)) {
+        if (this.sync) {
+          // This error code should not happen in sync mode, because it is
+          // not using the underlining operating system asynchronous functions.
+          // However it happens, and so we handle it.
+          // Ref: https://github.com/pinojs/pino/issues/783
+          try {
+            sleep(BUSY_WRITE_TIMEOUT)
+            this.release(undefined, 0)
+          } catch (err) {
+            this.release(err)
+          }
+        } else {
+          // Let's give the destination some time to process the chunk.
+          setTimeout(() => {
+            fs.write(this.fd, this._writingBuf, 'utf8', this.release)
+          }, BUSY_WRITE_TIMEOUT)
+        }
+      } else {
+        this._writing = false
+
+        this.emit('error', err)
+      }
+      return
+    }
+    this.emit('write', n)
+
+    this._len -= n
+    this._writingBuf = this._writingBuf.slice(n)
+
+    if (this._writingBuf.length) {
+      if (!this.sync) {
+        fs.write(this.fd, this._writingBuf, 'utf8', this.release)
+        return
+      }
+
+      try {
+        do {
+          const n = fs.writeSync(this.fd, this._writingBuf, 'utf8')
+          this._len -= n
+          this._writingBuf = this._writingBuf.slice(n)
+        } while (this._writingBuf)
+      } catch (err) {
+        this.release(err)
+        return
+      }
+    }
+
+    const len = this._len
+    if (this._reopening) {
+      this._writing = false
+      this._reopening = false
+      this.reopen()
+    } else if (len > this.minLength) {
+      actualWrite(this)
+    } else if (this._ending) {
+      if (len > 0) {
+        actualWrite(this)
+      } else {
+        this._writing = false
+        actualClose(this)
+      }
+    } else {
+      this._writing = false
+      if (this.sync) {
+        if (!this._asyncDrainScheduled) {
+          this._asyncDrainScheduled = true
+          process.nextTick(emitDrain, this)
+        }
+      } else {
+        this.emit('drain')
+      }
+    }
+  }
+
+  this.on('newListener', function (name) {
+    if (name === 'drain') {
+      this._asyncDrainScheduled = false
+    }
+  })
+}
+
+function emitDrain (sonic) {
+  const hasListeners = sonic.listenerCount('drain') > 0
+  if (!hasListeners) return
+  sonic._asyncDrainScheduled = false
+  sonic.emit('drain')
+}
+
+inherits(SonicBoom, EventEmitter)
+
+SonicBoom.prototype.write = function (data) {
+  if (this.destroyed) {
+    throw new Error('SonicBoom destroyed')
+  }
+
+  const len = this._len + data.length
+  const bufs = this._bufs
+
+  if (this.maxLength && len > this.maxLength) {
+    this.emit('drop', data)
+    return this._len < this._hwm
+  }
+
+  if (
+    bufs.length === 0 ||
+    bufs[bufs.length - 1].length + data.length > this.maxWrite
+  ) {
+    bufs.push('' + data)
+  } else {
+    bufs[bufs.length - 1] += data
+  }
+
+  this._len = len
+
+  if (!this._writing && this._len >= this.minLength) {
+    actualWrite(this)
+  }
+
+  return this._len < this._hwm
+}
+
+SonicBoom.prototype.flush = function () {
+  if (this.destroyed) {
+    throw new Error('SonicBoom destroyed')
+  }
+
+  if (this._writing || this.minLength <= 0) {
+    return
+  }
+
+  if (this._bufs.length === 0) {
+    this._bufs.push('')
+  }
+
+  actualWrite(this)
+}
+
+SonicBoom.prototype.reopen = function (file) {
+  if (this.destroyed) {
+    throw new Error('SonicBoom destroyed')
+  }
+
+  if (this._opening) {
+    this.once('ready', () => {
+      this.reopen(file)
+    })
+    return
+  }
+
+  if (this._ending) {
+    return
+  }
+
+  if (!this.file) {
+    throw new Error('Unable to reopen a file descriptor, you must pass a file to SonicBoom')
+  }
+
+  this._reopening = true
+
+  if (this._writing) {
+    return
+  }
+
+  const fd = this.fd
+  this.once('ready', () => {
+    if (fd !== this.fd) {
+      fs.close(fd, (err) => {
+        if (err) {
+          return this.emit('error', err)
+        }
+      })
+    }
+  })
+
+  openFile(file || this.file, this)
+}
+
+SonicBoom.prototype.end = function () {
+  if (this.destroyed) {
+    throw new Error('SonicBoom destroyed')
+  }
+
+  if (this._opening) {
+    this.once('ready', () => {
+      this.end()
+    })
+    return
+  }
+
+  if (this._ending) {
+    return
+  }
+
+  this._ending = true
+
+  if (this._writing) {
+    return
+  }
+
+  if (this._len > 0 && this.fd >= 0) {
+    actualWrite(this)
+  } else {
+    actualClose(this)
+  }
+}
+
+SonicBoom.prototype.flushSync = function () {
+  if (this.destroyed) {
+    throw new Error('SonicBoom destroyed')
+  }
+
+  if (this.fd < 0) {
+    throw new Error('sonic boom is not ready yet')
+  }
+
+  if (!this._writing && this._writingBuf.length > 0) {
+    this._bufs.unshift(this._writingBuf)
+    this._writingBuf = ''
+  }
+
+  while (this._bufs.length) {
+    const buf = this._bufs[0]
+    try {
+      this._len -= fs.writeSync(this.fd, buf, 'utf8')
+      this._bufs.shift()
+    } catch (err) {
+      if (err.code !== 'EAGAIN' || !this.retryEAGAIN(err, buf.length, this._len - buf.length)) {
+        throw err
+      }
+
+      sleep(BUSY_WRITE_TIMEOUT)
+    }
+  }
+}
+
+SonicBoom.prototype.destroy = function () {
+  if (this.destroyed) {
+    return
+  }
+  actualClose(this)
+}
+
+function actualWrite (sonic) {
+  const release = sonic.release
+  sonic._writing = true
+  sonic._writingBuf = sonic._writingBuf || sonic._bufs.shift() || ''
+
+  if (sonic.sync) {
+    try {
+      const written = fs.writeSync(sonic.fd, sonic._writingBuf, 'utf8')
+      release(null, written)
+    } catch (err) {
+      release(err)
+    }
+  } else {
+    fs.write(sonic.fd, sonic._writingBuf, 'utf8', release)
+  }
+}
+
+function actualClose (sonic) {
+  if (sonic.fd === -1) {
+    sonic.once('ready', actualClose.bind(null, sonic))
+    return
+  }
+
+  sonic.destroyed = true
+  sonic._bufs = []
+
+  if (sonic.fd !== 1 && sonic.fd !== 2) {
+    fs.close(sonic.fd, done)
+  } else {
+    setImmediate(done)
+  }
+
+  function done (err) {
+    if (err) {
+      sonic.emit('error', err)
+      return
+    }
+
+    if (sonic._ending && !sonic._writing) {
+      sonic.emit('finish')
+    }
+    sonic.emit('close')
+  }
+}
+
+/**
+ * These export configurations enable JS and TS developers
+ * to consumer SonicBoom in whatever way best suits their needs.
+ * Some examples of supported import syntax includes:
+ * - `const SonicBoom = require('SonicBoom')`
+ * - `const { SonicBoom } = require('SonicBoom')`
+ * - `import * as SonicBoom from 'SonicBoom'`
+ * - `import { SonicBoom } from 'SonicBoom'`
+ * - `import SonicBoom from 'SonicBoom'`
+ */
+SonicBoom.SonicBoom = SonicBoom
+SonicBoom.default = SonicBoom
+module.exports = SonicBoom
+
+
+/***/ }),
+
+/***/ 8366:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { EventEmitter } = __nccwpck_require__(8614)
+const { Worker } = __nccwpck_require__(5013)
+const { join } = __nccwpck_require__(5622)
+const { pathToFileURL } = __nccwpck_require__(8835)
+const { wait } = __nccwpck_require__(3916)
+const {
+  WRITE_INDEX,
+  READ_INDEX
+} = __nccwpck_require__(4212)
+const buffer = __nccwpck_require__(4293)
+const assert = __nccwpck_require__(2357)
+
+const kImpl = Symbol('kImpl')
+
+// V8 limit for string size
+const MAX_STRING = buffer.constants.MAX_STRING_LENGTH
+
+class FakeWeakRef {
+  constructor (value) {
+    this._value = value
+  }
+
+  deref () {
+    return this._value
+  }
+}
+
+const FinalizationRegistry = global.FinalizationRegistry || class FakeFinalizationRegistry {
+  register () {}
+  unregister () {}
+}
+
+const WeakRef = global.WeakRef || FakeWeakRef
+
+const registry = new FinalizationRegistry((worker) => {
+  if (worker.exited) {
+    return
+  }
+  worker.terminate()
+})
+
+function createWorker (stream, opts) {
+  const { filename, workerData } = opts
+
+  const bundlerOverrides = '__bundlerPathsOverrides' in globalThis ? globalThis.__bundlerPathsOverrides : {}
+  const toExecute = bundlerOverrides['thread-stream-worker'] || __nccwpck_require__.ab + "worker1.js"
+
+  const worker = new Worker(toExecute, {
+    ...opts.workerOpts,
+    workerData: {
+      filename: filename.indexOf('file://') === 0
+        ? filename
+        : pathToFileURL(filename).href,
+      dataBuf: stream[kImpl].dataBuf,
+      stateBuf: stream[kImpl].stateBuf,
+      workerData
+    }
+  })
+
+  // We keep a strong reference for now,
+  // we need to start writing first
+  worker.stream = new FakeWeakRef(stream)
+
+  worker.on('message', onWorkerMessage)
+  worker.on('exit', onWorkerExit)
+  registry.register(stream, worker)
+
+  return worker
+}
+
+function drain (stream) {
+  assert(!stream[kImpl].sync)
+  if (stream[kImpl].needDrain) {
+    stream[kImpl].needDrain = false
+    stream.emit('drain')
+  }
+}
+
+function nextFlush (stream) {
+  const writeIndex = Atomics.load(stream[kImpl].state, WRITE_INDEX)
+  let leftover = stream[kImpl].data.length - writeIndex
+
+  if (leftover > 0) {
+    if (stream[kImpl].buf.length === 0) {
+      stream[kImpl].flushing = false
+
+      if (stream[kImpl].ending) {
+        end(stream)
+      } else if (stream[kImpl].needDrain) {
+        process.nextTick(drain, stream)
+      }
+
+      return
+    }
+
+    let toWrite = stream[kImpl].buf.slice(0, leftover)
+    let toWriteBytes = Buffer.byteLength(toWrite)
+    if (toWriteBytes <= leftover) {
+      stream[kImpl].buf = stream[kImpl].buf.slice(leftover)
+      // process._rawDebug('writing ' + toWrite.length)
+      write(stream, toWrite, nextFlush.bind(null, stream))
+    } else {
+      // multi-byte utf-8
+      stream.flush(() => {
+        // err is already handled in flush()
+        if (stream.destroyed) {
+          return
+        }
+
+        Atomics.store(stream[kImpl].state, READ_INDEX, 0)
+        Atomics.store(stream[kImpl].state, WRITE_INDEX, 0)
+
+        // Find a toWrite length that fits the buffer
+        // it must exists as the buffer is at least 4 bytes length
+        // and the max utf-8 length for a char is 4 bytes.
+        while (toWriteBytes > stream[kImpl].data.length) {
+          leftover = leftover / 2
+          toWrite = stream[kImpl].buf.slice(0, leftover)
+          toWriteBytes = Buffer.byteLength(toWrite)
+        }
+        stream[kImpl].buf = stream[kImpl].buf.slice(leftover)
+        write(stream, toWrite, nextFlush.bind(null, stream))
+      })
+    }
+  } else if (leftover === 0) {
+    if (writeIndex === 0 && stream[kImpl].buf.length === 0) {
+      // we had a flushSync in the meanwhile
+      return
+    }
+    stream.flush(() => {
+      Atomics.store(stream[kImpl].state, READ_INDEX, 0)
+      Atomics.store(stream[kImpl].state, WRITE_INDEX, 0)
+      nextFlush(stream)
+    })
+  } else {
+    // This should never happen
+    throw new Error('overwritten')
+  }
+}
+
+function onWorkerMessage (msg) {
+  const stream = this.stream.deref()
+  if (stream === undefined) {
+    this.exited = true
+    // Terminate the worker.
+    this.terminate()
+    return
+  }
+
+  switch (msg.code) {
+    case 'READY':
+      // Replace the FakeWeakRef with a
+      // proper one.
+      this.stream = new WeakRef(stream)
+
+      stream.flush(() => {
+        stream[kImpl].ready = true
+        stream.emit('ready')
+      })
+      break
+    case 'ERROR':
+      destroy(stream, msg.err)
+      break
+    default:
+      throw new Error('this should not happen: ' + msg.code)
+  }
+}
+
+function onWorkerExit (code) {
+  const stream = this.stream.deref()
+  if (stream === undefined) {
+    // Nothing to do, the worker already exit
+    return
+  }
+  registry.unregister(stream)
+  stream.worker.exited = true
+  stream.worker.off('exit', onWorkerExit)
+  destroy(stream, code !== 0 ? new Error('The worker thread exited') : null)
+}
+
+class ThreadStream extends EventEmitter {
+  constructor (opts = {}) {
+    super()
+
+    if (opts.bufferSize < 4) {
+      throw new Error('bufferSize must at least fit a 4-byte utf-8 char')
+    }
+
+    this[kImpl] = {}
+    this[kImpl].stateBuf = new SharedArrayBuffer(128)
+    this[kImpl].state = new Int32Array(this[kImpl].stateBuf)
+    this[kImpl].dataBuf = new SharedArrayBuffer(opts.bufferSize || 4 * 1024 * 1024)
+    this[kImpl].data = Buffer.from(this[kImpl].dataBuf)
+    this[kImpl].sync = opts.sync || false
+    this[kImpl].ending = false
+    this[kImpl].ended = false
+    this[kImpl].needDrain = false
+    this[kImpl].destroyed = false
+    this[kImpl].flushing = false
+    this[kImpl].ready = false
+    this[kImpl].finished = false
+    this[kImpl].errored = null
+    this[kImpl].closed = false
+    this[kImpl].buf = ''
+
+    // TODO (fix): Make private?
+    this.worker = createWorker(this, opts) // TODO (fix): make private
+  }
+
+  write (data) {
+    if (this[kImpl].destroyed) {
+      throw new Error('the worker has exited')
+    }
+
+    if (this[kImpl].ending) {
+      throw new Error('the worker is ending')
+    }
+
+    if (this[kImpl].flushing && this[kImpl].buf.length + data.length >= MAX_STRING) {
+      try {
+        writeSync(this)
+        this[kImpl].flushing = true
+      } catch (err) {
+        destroy(this, err)
+        return false
+      }
+    }
+
+    this[kImpl].buf += data
+
+    if (this[kImpl].sync) {
+      try {
+        writeSync(this)
+        return true
+      } catch (err) {
+        destroy(this, err)
+        return false
+      }
+    }
+
+    if (!this[kImpl].flushing) {
+      this[kImpl].flushing = true
+      setImmediate(nextFlush, this)
+    }
+
+    this[kImpl].needDrain = this[kImpl].data.length - this[kImpl].buf.length - Atomics.load(this[kImpl].state, WRITE_INDEX) <= 0
+    return !this[kImpl].needDrain
+  }
+
+  end () {
+    if (this[kImpl].destroyed) {
+      return
+    }
+
+    this[kImpl].ending = true
+    end(this)
+  }
+
+  flush (cb) {
+    if (this[kImpl].destroyed) {
+      if (typeof cb === 'function') {
+        process.nextTick(cb, new Error('the worker has exited'))
+      }
+      return
+    }
+
+    // TODO write all .buf
+    const writeIndex = Atomics.load(this[kImpl].state, WRITE_INDEX)
+    // process._rawDebug(`(flush) readIndex (${Atomics.load(this.state, READ_INDEX)}) writeIndex (${Atomics.load(this.state, WRITE_INDEX)})`)
+    wait(this[kImpl].state, READ_INDEX, writeIndex, Infinity, (err, res) => {
+      if (err) {
+        destroy(this, err)
+        process.nextTick(cb, err)
+        return
+      }
+      if (res === 'not-equal') {
+        // TODO handle deadlock
+        this.flush(cb)
+        return
+      }
+      process.nextTick(cb)
+    })
+  }
+
+  flushSync () {
+    if (this[kImpl].destroyed) {
+      return
+    }
+
+    writeSync(this)
+    flushSync(this)
+  }
+
+  unref () {
+    this.worker.unref()
+  }
+
+  ref () {
+    this.worker.ref()
+  }
+
+  get ready () {
+    return this[kImpl].ready
+  }
+
+  get destroyed () {
+    return this[kImpl].destroyed
+  }
+
+  get closed () {
+    return this[kImpl].closed
+  }
+
+  get writable () {
+    return !this[kImpl].destroyed && !this[kImpl].ending
+  }
+
+  get writableEnded () {
+    return this[kImpl].ending
+  }
+
+  get writableFinished () {
+    return this[kImpl].finished
+  }
+
+  get writableNeedDrain () {
+    return this[kImpl].needDrain
+  }
+
+  get writableObjectMode () {
+    return false
+  }
+
+  get writableErrored () {
+    return this[kImpl].errored
+  }
+}
+
+function destroy (stream, err) {
+  if (stream[kImpl].destroyed) {
+    return
+  }
+  stream[kImpl].destroyed = true
+
+  if (err) {
+    stream[kImpl].errored = err
+    stream.emit('error', err)
+  }
+
+  if (!stream.worker.exited) {
+    stream.worker.terminate()
+      .catch(() => {})
+      .then(() => {
+        stream[kImpl].closed = true
+        stream.emit('close')
+      })
+  } else {
+    setImmediate(() => {
+      stream[kImpl].closed = true
+      stream.emit('close')
+    })
+  }
+}
+
+function write (stream, data, cb) {
+  // data is smaller than the shared buffer length
+  const current = Atomics.load(stream[kImpl].state, WRITE_INDEX)
+  const length = Buffer.byteLength(data)
+  stream[kImpl].data.write(data, current)
+  Atomics.store(stream[kImpl].state, WRITE_INDEX, current + length)
+  Atomics.notify(stream[kImpl].state, WRITE_INDEX)
+  cb()
+  return true
+}
+
+function end (stream) {
+  if (stream[kImpl].ended || !stream[kImpl].ending || stream[kImpl].flushing) {
+    return
+  }
+  stream[kImpl].ended = true
+
+  try {
+    stream.flushSync()
+
+    let readIndex = Atomics.load(stream[kImpl].state, READ_INDEX)
+
+    // process._rawDebug('writing index')
+    Atomics.store(stream[kImpl].state, WRITE_INDEX, -1)
+    // process._rawDebug(`(end) readIndex (${Atomics.load(stream.state, READ_INDEX)}) writeIndex (${Atomics.load(stream.state, WRITE_INDEX)})`)
+    Atomics.notify(stream[kImpl].state, WRITE_INDEX)
+
+    // Wait for the process to complete
+    let spins = 0
+    while (readIndex !== -1) {
+      // process._rawDebug(`read = ${read}`)
+      Atomics.wait(stream[kImpl].state, READ_INDEX, readIndex, 1000)
+      readIndex = Atomics.load(stream[kImpl].state, READ_INDEX)
+
+      if (readIndex === -2) {
+        throw new Error('end() failed')
+      }
+
+      if (++spins === 10) {
+        throw new Error('end() took too long (10s)')
+      }
+    }
+
+    process.nextTick(() => {
+      stream[kImpl].finished = true
+      stream.emit('finish')
+    })
+  } catch (err) {
+    destroy(stream, err)
+  }
+  // process._rawDebug('end finished...')
+}
+
+function writeSync (stream) {
+  const cb = () => {
+    if (stream[kImpl].ending) {
+      end(stream)
+    } else if (stream[kImpl].needDrain) {
+      process.nextTick(drain, stream)
+    }
+  }
+  stream[kImpl].flushing = false
+
+  while (stream[kImpl].buf.length !== 0) {
+    const writeIndex = Atomics.load(stream[kImpl].state, WRITE_INDEX)
+    let leftover = stream[kImpl].data.length - writeIndex
+    if (leftover === 0) {
+      flushSync(stream)
+      Atomics.store(stream[kImpl].state, READ_INDEX, 0)
+      Atomics.store(stream[kImpl].state, WRITE_INDEX, 0)
+      continue
+    } else if (leftover < 0) {
+      // stream should never happen
+      throw new Error('overwritten')
+    }
+
+    let toWrite = stream[kImpl].buf.slice(0, leftover)
+    let toWriteBytes = Buffer.byteLength(toWrite)
+    if (toWriteBytes <= leftover) {
+      stream[kImpl].buf = stream[kImpl].buf.slice(leftover)
+      // process._rawDebug('writing ' + toWrite.length)
+      write(stream, toWrite, cb)
+    } else {
+      // multi-byte utf-8
+      flushSync(stream)
+      Atomics.store(stream[kImpl].state, READ_INDEX, 0)
+      Atomics.store(stream[kImpl].state, WRITE_INDEX, 0)
+
+      // Find a toWrite length that fits the buffer
+      // it must exists as the buffer is at least 4 bytes length
+      // and the max utf-8 length for a char is 4 bytes.
+      while (toWriteBytes > stream[kImpl].buf.length) {
+        leftover = leftover / 2
+        toWrite = stream[kImpl].buf.slice(0, leftover)
+        toWriteBytes = Buffer.byteLength(toWrite)
+      }
+      stream[kImpl].buf = stream[kImpl].buf.slice(leftover)
+      write(stream, toWrite, cb)
+    }
+  }
+}
+
+function flushSync (stream) {
+  if (stream[kImpl].flushing) {
+    throw new Error('unable to flush while flushing')
+  }
+
+  // process._rawDebug('flushSync started')
+
+  const writeIndex = Atomics.load(stream[kImpl].state, WRITE_INDEX)
+
+  let spins = 0
+
+  // TODO handle deadlock
+  while (true) {
+    const readIndex = Atomics.load(stream[kImpl].state, READ_INDEX)
+
+    if (readIndex === -2) {
+      throw new Error('_flushSync failed')
+    }
+
+    // process._rawDebug(`(flushSync) readIndex (${readIndex}) writeIndex (${writeIndex})`)
+    if (readIndex !== writeIndex) {
+      // TODO stream timeouts for some reason.
+      Atomics.wait(stream[kImpl].state, READ_INDEX, readIndex, 1000)
+    } else {
+      break
+    }
+
+    if (++spins === 10) {
+      throw new Error('_flushSync took too long (10s)')
+    }
+  }
+  // process._rawDebug('flushSync finished')
+}
+
+module.exports = ThreadStream
+
+
+/***/ }),
+
+/***/ 4212:
+/***/ ((module) => {
+
+"use strict";
+
+
+const WRITE_INDEX = 4
+const READ_INDEX = 8
+
+module.exports = {
+  WRITE_INDEX,
+  READ_INDEX
+}
+
+
+/***/ }),
+
+/***/ 3916:
+/***/ ((module) => {
+
+"use strict";
+
+
+const MAX_TIMEOUT = 1000
+
+function wait (state, index, expected, timeout, done) {
+  const max = Date.now() + timeout
+  let current = Atomics.load(state, index)
+  if (current === expected) {
+    done(null, 'ok')
+    return
+  }
+  let prior = current
+  const check = (backoff) => {
+    if (Date.now() > max) {
+      done(null, 'timed-out')
+    } else {
+      setTimeout(() => {
+        prior = current
+        current = Atomics.load(state, index)
+        if (current === prior) {
+          check(backoff >= MAX_TIMEOUT ? MAX_TIMEOUT : backoff * 2)
+        } else {
+          if (current === expected) done(null, 'ok')
+          else done(null, 'not-equal')
+        }
+      }, backoff)
+    }
+  }
+  check(1)
+}
+
+// let waitDiffCount = 0
+function waitDiff (state, index, expected, timeout, done) {
+  // const id = waitDiffCount++
+  // process._rawDebug(`>>> waitDiff ${id}`)
+  const max = Date.now() + timeout
+  let current = Atomics.load(state, index)
+  if (current !== expected) {
+    done(null, 'ok')
+    return
+  }
+  const check = (backoff) => {
+    // process._rawDebug(`${id} ${index} current ${current} expected ${expected}`)
+    // process._rawDebug('' + backoff)
+    if (Date.now() > max) {
+      done(null, 'timed-out')
+    } else {
+      setTimeout(() => {
+        current = Atomics.load(state, index)
+        if (current !== expected) {
+          done(null, 'ok')
+        } else {
+          check(backoff >= MAX_TIMEOUT ? MAX_TIMEOUT : backoff * 2)
+        }
+      }, backoff)
+    }
+  }
+  check(1)
+}
+
+module.exports = { wait, waitDiff }
+
+
+/***/ }),
+
+/***/ 4294:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+module.exports = __nccwpck_require__(4219);
+
+
+/***/ }),
+
+/***/ 4219:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 
-var net = __nccwpck_require__(631);
-var tls = __nccwpck_require__(16);
-var http = __nccwpck_require__(605);
-var https = __nccwpck_require__(211);
-var events = __nccwpck_require__(614);
-var assert = __nccwpck_require__(357);
-var util = __nccwpck_require__(669);
+var net = __nccwpck_require__(1631);
+var tls = __nccwpck_require__(4016);
+var http = __nccwpck_require__(8605);
+var https = __nccwpck_require__(7211);
+var events = __nccwpck_require__(8614);
+var assert = __nccwpck_require__(2357);
+var util = __nccwpck_require__(1669);
 
 
 exports.httpOverHttp = httpOverHttp;
@@ -2810,7 +7469,7 @@ exports.debug = debug; // for test
 
 /***/ }),
 
-/***/ 840:
+/***/ 5840:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2874,29 +7533,29 @@ Object.defineProperty(exports, "parse", ({
   }
 }));
 
-var _v = _interopRequireDefault(__nccwpck_require__(628));
+var _v = _interopRequireDefault(__nccwpck_require__(8628));
 
-var _v2 = _interopRequireDefault(__nccwpck_require__(409));
+var _v2 = _interopRequireDefault(__nccwpck_require__(6409));
 
-var _v3 = _interopRequireDefault(__nccwpck_require__(122));
+var _v3 = _interopRequireDefault(__nccwpck_require__(5122));
 
-var _v4 = _interopRequireDefault(__nccwpck_require__(120));
+var _v4 = _interopRequireDefault(__nccwpck_require__(9120));
 
-var _nil = _interopRequireDefault(__nccwpck_require__(332));
+var _nil = _interopRequireDefault(__nccwpck_require__(5332));
 
-var _version = _interopRequireDefault(__nccwpck_require__(595));
+var _version = _interopRequireDefault(__nccwpck_require__(1595));
 
-var _validate = _interopRequireDefault(__nccwpck_require__(900));
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
 
-var _stringify = _interopRequireDefault(__nccwpck_require__(950));
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
 
-var _parse = _interopRequireDefault(__nccwpck_require__(746));
+var _parse = _interopRequireDefault(__nccwpck_require__(2746));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 /***/ }),
 
-/***/ 569:
+/***/ 4569:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2907,7 +7566,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = void 0;
 
-var _crypto = _interopRequireDefault(__nccwpck_require__(417));
+var _crypto = _interopRequireDefault(__nccwpck_require__(6417));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2926,7 +7585,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 332:
+/***/ 5332:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -2941,7 +7600,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 746:
+/***/ 2746:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -2952,7 +7611,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = void 0;
 
-var _validate = _interopRequireDefault(__nccwpck_require__(900));
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3019,7 +7678,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = rng;
 
-var _crypto = _interopRequireDefault(__nccwpck_require__(417));
+var _crypto = _interopRequireDefault(__nccwpck_require__(6417));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3039,7 +7698,7 @@ function rng() {
 
 /***/ }),
 
-/***/ 274:
+/***/ 5274:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3050,7 +7709,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = void 0;
 
-var _crypto = _interopRequireDefault(__nccwpck_require__(417));
+var _crypto = _interopRequireDefault(__nccwpck_require__(6417));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3069,7 +7728,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 950:
+/***/ 8950:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3080,7 +7739,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = void 0;
 
-var _validate = _interopRequireDefault(__nccwpck_require__(900));
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3115,7 +7774,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 628:
+/***/ 8628:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3128,7 +7787,7 @@ exports.default = void 0;
 
 var _rng = _interopRequireDefault(__nccwpck_require__(807));
 
-var _stringify = _interopRequireDefault(__nccwpck_require__(950));
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3229,7 +7888,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 409:
+/***/ 6409:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3240,9 +7899,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = void 0;
 
-var _v = _interopRequireDefault(__nccwpck_require__(998));
+var _v = _interopRequireDefault(__nccwpck_require__(5998));
 
-var _md = _interopRequireDefault(__nccwpck_require__(569));
+var _md = _interopRequireDefault(__nccwpck_require__(4569));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3252,7 +7911,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 998:
+/***/ 5998:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3264,9 +7923,9 @@ Object.defineProperty(exports, "__esModule", ({
 exports.default = _default;
 exports.URL = exports.DNS = void 0;
 
-var _stringify = _interopRequireDefault(__nccwpck_require__(950));
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
 
-var _parse = _interopRequireDefault(__nccwpck_require__(746));
+var _parse = _interopRequireDefault(__nccwpck_require__(2746));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3337,7 +7996,7 @@ function _default(name, version, hashfunc) {
 
 /***/ }),
 
-/***/ 122:
+/***/ 5122:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3350,7 +8009,7 @@ exports.default = void 0;
 
 var _rng = _interopRequireDefault(__nccwpck_require__(807));
 
-var _stringify = _interopRequireDefault(__nccwpck_require__(950));
+var _stringify = _interopRequireDefault(__nccwpck_require__(8950));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3381,7 +8040,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 120:
+/***/ 9120:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3392,9 +8051,9 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = void 0;
 
-var _v = _interopRequireDefault(__nccwpck_require__(998));
+var _v = _interopRequireDefault(__nccwpck_require__(5998));
 
-var _sha = _interopRequireDefault(__nccwpck_require__(274));
+var _sha = _interopRequireDefault(__nccwpck_require__(5274));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3404,7 +8063,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 900:
+/***/ 6900:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3428,7 +8087,7 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 595:
+/***/ 1595:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -3439,7 +8098,7 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = void 0;
 
-var _validate = _interopRequireDefault(__nccwpck_require__(900));
+var _validate = _interopRequireDefault(__nccwpck_require__(6900));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3456,7 +8115,23 @@ exports.default = _default;
 
 /***/ }),
 
-/***/ 357:
+/***/ 1462:
+/***/ ((module) => {
+
+module.exports = eval("require")("pino-pretty");
+
+
+/***/ }),
+
+/***/ 8686:
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('{"_from":"pino@^7.1.0","_id":"pino@7.11.0","_inBundle":false,"_integrity":"sha512-dMACeu63HtRLmCG8VKdy4cShCPKaYDR4youZqoSWLxl5Gu99HUw8bw75thbPv9Nip+H+QYX8o3ZJbTdVZZ2TVg==","_location":"/pino","_phantomChildren":{},"_requested":{"type":"range","registry":true,"raw":"pino@^7.1.0","name":"pino","escapedName":"pino","rawSpec":"^7.1.0","saveSpec":null,"fetchSpec":"^7.1.0"},"_requiredBy":["/","/pino-loki-transport"],"_resolved":"https://registry.npmjs.org/pino/-/pino-7.11.0.tgz","_shasum":"0f0ea5c4683dc91388081d44bff10c83125066f6","_spec":"pino@^7.1.0","_where":"/usr/src/loki-action","author":{"name":"Matteo Collina","email":"hello@matteocollina.com"},"bin":{"pino":"bin.js"},"browser":"./browser.js","bugs":{"url":"https://github.com/pinojs/pino/issues"},"bundleDependencies":false,"contributors":[{"name":"David Mark Clements","email":"huperekchuno@googlemail.com"},{"name":"James Sumners","email":"james.sumners@gmail.com"},{"name":"Thomas Watson Steen","email":"w@tson.dk","url":"https://twitter.com/wa7son"}],"dependencies":{"atomic-sleep":"^1.0.0","fast-redact":"^3.0.0","on-exit-leak-free":"^0.2.0","pino-abstract-transport":"v0.5.0","pino-std-serializers":"^4.0.0","process-warning":"^1.0.0","quick-format-unescaped":"^4.0.3","real-require":"^0.1.0","safe-stable-stringify":"^2.1.0","sonic-boom":"^2.2.1","thread-stream":"^0.15.1"},"deprecated":false,"description":"super fast, all natural json logger","devDependencies":{"@types/flush-write-stream":"^1.0.0","@types/node":"^17.0.0","@types/tap":"^15.0.6","airtap":"4.0.4","benchmark":"^2.1.4","bole":"^4.0.0","bunyan":"^1.8.14","docsify-cli":"^4.4.1","eslint":"^7.17.0","eslint-config-standard":"^16.0.3","eslint-plugin-import":"^2.22.1","eslint-plugin-node":"^11.1.0","eslint-plugin-promise":"^5.1.0","execa":"^5.0.0","fastbench":"^1.0.1","flush-write-stream":"^2.0.0","import-fresh":"^3.2.1","jest":"^27.3.1","log":"^6.0.0","loglevel":"^1.6.7","pino-pretty":"^v7.6.0","pre-commit":"^1.2.2","proxyquire":"^2.1.3","pump":"^3.0.0","rimraf":"^3.0.2","semver":"^7.0.0","split2":"^4.0.0","steed":"^1.1.3","strip-ansi":"^6.0.0","tap":"^16.0.0","tape":"^5.0.0","through2":"^4.0.0","ts-node":"^10.7.0","tsd":"^0.20.0","typescript":"^4.4.4","winston":"^3.3.3"},"files":["pino.js","file.js","pino.d.ts","bin.js","browser.js","pretty.js","usage.txt","test","docs","example.js","lib"],"homepage":"http://getpino.io","keywords":["fast","logger","stream","json"],"license":"MIT","main":"pino.js","name":"pino","precommit":"test","repository":{"type":"git","url":"git+https://github.com/pinojs/pino.git"},"scripts":{"bench":"node benchmarks/utils/runbench all","bench-basic":"node benchmarks/utils/runbench basic","bench-child":"node benchmarks/utils/runbench child","bench-child-child":"node benchmarks/utils/runbench child-child","bench-child-creation":"node benchmarks/utils/runbench child-creation","bench-deep-object":"node benchmarks/utils/runbench deep-object","bench-formatters":"node benchmarks/utils/runbench formatters","bench-longs-tring":"node benchmarks/utils/runbench long-string","bench-multi-arg":"node benchmarks/utils/runbench multi-arg","bench-object":"node benchmarks/utils/runbench object","browser-test":"airtap --local 8080 test/browser*test.js","cov-ui":"tap --ts --coverage-report=html","docs":"docsify serve","lint":"eslint .","test":"npm run lint && npm run transpile && tap --ts && jest test/jest && npm run test-types","test-ci":"npm run lint && npm run transpile && tap --ts --no-check-coverage --coverage-report=lcovonly && npm run test-types","test-ci-pnpm":"pnpm run lint && npm run transpile && tap --ts --no-coverage --no-check-coverage && pnpm run test-types","test-ci-yarn-pnp":"yarn run lint && npm run transpile && tap --ts --no-check-coverage --coverage-report=lcovonly","test-types":"tsc && tsd && ts-node test/types/pino.ts","transpile":"node ./test/fixtures/ts/transpile.cjs","update-bench-doc":"node benchmarks/utils/generate-benchmark-doc > docs/benchmarks.md"},"tsd":{"directory":"test/types"},"type":"commonjs","types":"pino.d.ts","version":"7.11.0"}');
+
+/***/ }),
+
+/***/ 2357:
 /***/ ((module) => {
 
 "use strict";
@@ -3464,7 +8139,15 @@ module.exports = require("assert");
 
 /***/ }),
 
-/***/ 417:
+/***/ 4293:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("buffer");
+
+/***/ }),
+
+/***/ 6417:
 /***/ ((module) => {
 
 "use strict";
@@ -3472,7 +8155,7 @@ module.exports = require("crypto");
 
 /***/ }),
 
-/***/ 614:
+/***/ 8614:
 /***/ ((module) => {
 
 "use strict";
@@ -3480,7 +8163,7 @@ module.exports = require("events");
 
 /***/ }),
 
-/***/ 747:
+/***/ 5747:
 /***/ ((module) => {
 
 "use strict";
@@ -3488,7 +8171,7 @@ module.exports = require("fs");
 
 /***/ }),
 
-/***/ 605:
+/***/ 8605:
 /***/ ((module) => {
 
 "use strict";
@@ -3496,7 +8179,7 @@ module.exports = require("http");
 
 /***/ }),
 
-/***/ 211:
+/***/ 7211:
 /***/ ((module) => {
 
 "use strict";
@@ -3504,7 +8187,15 @@ module.exports = require("https");
 
 /***/ }),
 
-/***/ 631:
+/***/ 2282:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("module");
+
+/***/ }),
+
+/***/ 1631:
 /***/ ((module) => {
 
 "use strict";
@@ -3512,7 +8203,7 @@ module.exports = require("net");
 
 /***/ }),
 
-/***/ 87:
+/***/ 2087:
 /***/ ((module) => {
 
 "use strict";
@@ -3520,7 +8211,7 @@ module.exports = require("os");
 
 /***/ }),
 
-/***/ 622:
+/***/ 5622:
 /***/ ((module) => {
 
 "use strict";
@@ -3528,7 +8219,7 @@ module.exports = require("path");
 
 /***/ }),
 
-/***/ 765:
+/***/ 1765:
 /***/ ((module) => {
 
 "use strict";
@@ -3536,7 +8227,7 @@ module.exports = require("process");
 
 /***/ }),
 
-/***/ 16:
+/***/ 4016:
 /***/ ((module) => {
 
 "use strict";
@@ -3544,11 +8235,35 @@ module.exports = require("tls");
 
 /***/ }),
 
-/***/ 669:
+/***/ 8835:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("url");
+
+/***/ }),
+
+/***/ 1669:
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("util");
+
+/***/ }),
+
+/***/ 2184:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("vm");
+
+/***/ }),
+
+/***/ 5013:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("worker_threads");
 
 /***/ })
 
@@ -3598,7 +8313,7 @@ var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* this module exists to let us import and call the `run` function from the tests */
-const run_1 = __nccwpck_require__(884);
+const run_1 = __nccwpck_require__(7884);
 (0, run_1.run)();
 
 })();

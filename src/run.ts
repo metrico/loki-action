@@ -2,6 +2,8 @@ import * as core from "@actions/core";
 import { HttpClient } from "@actions/http-client";
 import * as process from "process";
 import * as gh from "./github";
+import pino from "pino";
+import { LogWorkerOptions } from "pino-loki-transport";
 
 const defaultIndex = "logs-generic-default";
 
@@ -63,6 +65,14 @@ export async function run(): Promise<void> {
     );
 
     // Initialize LogQL sender [TODO]
+    const logger = pino({
+      transport: {
+        target: "pino-loki-transport",
+        options: {
+          lokiUrl: "http://{{loki server ip address}}",
+        } as LogWorkerOptions,
+      },
+    });
 
     // get the logs for each job
     core.debug(`Getting logs for ${jobs.length} jobs`);
@@ -70,8 +80,9 @@ export async function run(): Promise<void> {
       const lines: string[] = await gh.fetchLogs(client, repo, j);
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
-	// Ship logs to LogQL
-        core.debug(`${l}`);
+        // Ship logs to LogQL
+        // core.debug(`${l}`);
+        logger.info(l);
       }
     }
   } catch (e) {

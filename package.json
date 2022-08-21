@@ -24,7 +24,8 @@
   "author": "Lorenzo Mangani",
   "license": "MIT",
   "dependencies": {
-    "pino": "^6.13.3",
+    "pino": "^7.1.0",
+    "pino-loki-transport": "0.8.6",
     "@actions/core": "^1.6.0",
     "@actions/http-client": "^1.0.8"
   },
