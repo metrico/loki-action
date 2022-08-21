@@ -24,10 +24,11 @@
   "author": "Lorenzo Mangani",
   "license": "MIT",
   "dependencies": {
-    "pino": "^8.4.2",
-    "pino-loki-transport": "0.8.6",
     "@actions/core": "^1.6.0",
-    "@actions/http-client": "^1.0.8"
+    "@actions/http-client": "^1.0.8",
+    "@types/pino": "^7.0.5",
+    "pino": "^8.4.2",
+    "pino-loki-transport": "^0.8.6"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.3",
