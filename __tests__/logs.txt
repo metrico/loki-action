@@ -1,0 +1,15 @@
+2021-09-28T15:01:51.5135523Z Waiting for a Hosted runner in the 'organization' to pick this job...
+2021-09-28T15:01:51.8182083Z Job is waiting for a hosted runner to come online.
+2021-09-28T15:01:56.7715472Z Job is about to start running on the hosted runner: Hosted Agent (hosted)
+2021-09-28T15:02:00.3681659Z ##[debug]Starting: test
+2021-09-28T15:02:00.3702836Z ##[debug]Cleaning runner temp folder: /home/runner/work/_temp
+2021-09-28T15:02:00.3753444Z ##[debug]Starting: Set up job
+2021-09-28T15:02:00.3754070Z Current runner version: '2.283.1'
+2021-09-28T15:02:00.3777733Z ##[group]Operating System
+2021-09-28T15:02:00.3778629Z Ubuntu
+2021-09-28T15:02:00.3779040Z 20.04.3
+2021-09-28T15:02:00.3779479Z LTS
+2021-09-28T15:02:00.3779901Z ##[endgroup]
+2021-09-28T15:02:00.3780475Z ##[group]Virtual Environment
+2021-09-28T15:02:00.3781127Z Environment: ubuntu-20.04
+2021-09-28T15:02:00.3781638Z Version: 20210919.1

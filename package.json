@@ -1,0 +1,45 @@
+{
+  "name": "loki-action",
+  "version": "1.0.0",
+  "private": false,
+  "description": "qryn-loki logs action",
+  "main": "lib/main.js",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write **/*.ts",
+    "format-check": "prettier --check **/*.ts",
+    "package": "ncc build --source-map --license licenses.txt",
+    "test": "jest",
+    "all": "npm run build && npm run format && npm run package"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/metrico/qryn-loki-action.git"
+  },
+  "keywords": [
+    "actions",
+    "observability",
+    "logs"
+  ],
+  "author": "Lorenzo Mangani",
+  "license": "MIT",
+  "dependencies": {
+    "pino": "^6.13.3",
+    "@actions/core": "^1.6.0",
+    "@actions/http-client": "^1.0.8"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.2",
+    "@types/node": "^16.11.51",
+    "@types/split2": "^3.2.1",
+    "@vercel/ncc": "^0.31.1",
+    "eslint-plugin-github": "^4.3.7",
+    "eslint-plugin-jest": "^25.2.1",
+    "jest": "^27.2.5",
+    "js-yaml": "^4.1.0",
+    "prettier": "2.4.1",
+    "ts-jest": "^27.0.7",
+    "ts-mockito": "^2.6.1",
+    "typescript": "^4.7.4"
+  }
+}

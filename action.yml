@@ -1,0 +1,31 @@
+name: 'qryn-loki logs'
+description: 'Send workflow logs to qryn-loki'
+author: 'Lorenzo Mangani'
+inputs:
+  repo-token:
+    required: true
+    description: 'GitHub token to access repo data'
+  job-names:
+    required: false
+    description: 'Comma separated names of the jobs to collect logs from, defaults to all jobs'
+  endpoint:
+    required: false
+    description: logql API push endpoint
+  addresses:
+    required: false
+    description: comma separated values pointing to logql endpoints
+  username:
+    required: false
+    description: logql api username
+  password:
+    required: false
+    description: logql api password
+  partition:
+    required: false
+    description: optional partition id
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+branding:
+  icon: 'copy'
+  color: 'yellow'
