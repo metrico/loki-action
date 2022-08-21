@@ -33,6 +33,7 @@ jobs:
           job-names: build
       ## test elastic logs
       - name: elastic-logs
+        if: failure()
         uses: masci/elastic-logs@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
