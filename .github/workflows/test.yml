@@ -14,7 +14,6 @@ jobs:
       - uses: actions/checkout@v2
       - run: |
           npm install
-      - run: |
           npm run all
   # Make sure the action works on a clean machine without building.
   e2e:
@@ -24,18 +23,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
-      ## test loki logs
       - name: loki-action
         uses: ./
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           endpoint: ${{ secrets.LOGQL_ENDPOINT || 'https://cloki.glitch.me' }}
-          job-names: build
-      ## test elastic logs
-      - name: elastic-logs
-        if: failure()
-        uses: metrico/opensearch-action@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          addresses:  ${{ secrets.LOGQL_ENDPOINT || 'https://cloki.glitch.me' }}
           job-names: build
