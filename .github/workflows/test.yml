@@ -34,7 +34,7 @@ jobs:
       ## test elastic logs
       - name: elastic-logs
         if: failure()
-        uses: masci/elastic-logs@v1
+        uses: metrico/opensearch-action@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           addresses:  ${{ secrets.LOGQL_ENDPOINT || 'https://cloki.glitch.me' }}
