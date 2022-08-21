@@ -2,19 +2,10 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 5928:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.fetchLogs = exports.fetchJobs = exports.getClient = void 0;
 const http_client_1 = __nccwpck_require__(9925);
@@ -28,40 +19,36 @@ function getClient(ghToken) {
     });
 }
 exports.getClient = getClient;
-function fetchJobs(httpClient, repo, runId, allowList) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const url = `${githubAPIUrl}/repos/${repo}/actions/runs/${runId}/jobs`;
-        const res = yield httpClient.get(url);
-        if (res.message.statusCode === undefined || res.message.statusCode >= 400) {
-            throw new Error(`HTTP request failed: ${res.message.statusMessage}`);
+async function fetchJobs(httpClient, repo, runId, allowList) {
+    const url = `${githubAPIUrl}/repos/${repo}/actions/runs/${runId}/jobs`;
+    const res = await httpClient.get(url);
+    if (res.message.statusCode === undefined || res.message.statusCode >= 400) {
+        throw new Error(`HTTP request failed: ${res.message.statusMessage}`);
+    }
+    const body = await res.readBody();
+    const jobs = [];
+    const all = allowList.length === 0;
+    for (const j of JSON.parse(body).jobs) {
+        // if there's an allow list, skip job accordingly
+        if (!all && !allowList.includes(j.name)) {
+            continue;
         }
-        const body = yield res.readBody();
-        const jobs = [];
-        const all = allowList.length === 0;
-        for (const j of JSON.parse(body).jobs) {
-            // if there's an allow list, skip job accordingly
-            if (!all && !allowList.includes(j.name)) {
-                continue;
-            }
-            jobs.push({
-                id: j.id,
-                name: j.name,
-            });
-        }
-        return jobs;
-    });
+        jobs.push({
+            id: j.id,
+            name: j.name,
+        });
+    }
+    return jobs;
 }
 exports.fetchJobs = fetchJobs;
-function fetchLogs(httpClient, repo, job) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const url = `${githubAPIUrl}/repos/${repo}/actions/jobs/${job.id}/logs`;
-        const res = yield httpClient.get(url);
-        if (res.message.statusCode === undefined || res.message.statusCode >= 400) {
-            throw new Error(`HTTP request failed: ${res.message.statusMessage}`);
-        }
-        const body = yield res.readBody();
-        return body.split("\n");
-    });
+async function fetchLogs(httpClient, repo, job) {
+    const url = `${githubAPIUrl}/repos/${repo}/actions/jobs/${job.id}/logs`;
+    const res = await httpClient.get(url);
+    if (res.message.statusCode === undefined || res.message.statusCode >= 400) {
+        throw new Error(`HTTP request failed: ${res.message.statusMessage}`);
+    }
+    const body = await res.readBody();
+    return body.split("\n");
 }
 exports.fetchLogs = fetchLogs;
 
@@ -96,15 +83,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -127,62 +105,60 @@ function getCommaSeparatedInput(value) {
     return retVal;
 }
 exports.getCommaSeparatedInput = getCommaSeparatedInput;
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            // retrieve config params
-            // Github repo token
-            const repoToken = core.getInput("repo-token", { required: true });
-            // List of jobs to collect logs from (all jobs when empty)
-            const jobNames = core.getInput("job-names", { required: false }) || "";
-            const allowList = getCommaSeparatedInput(jobNames);
-            // LogQL Push endpoint
-            const endpoint = core.getInput("endpoint", { required: false }) || "";
-            // LogQL endpoints (when endpoint is not present)
-            const addrValue = core.getInput("addresses", { required: false }) || "";
-            const addresses = getCommaSeparatedInput(addrValue);
-            // LogQL partition ID
-            const partitionId = core.getInput("partition", { required: false });
-            // logql user
-            const username = core.getInput("username", { required: false });
-            // logql pass
-            const password = core.getInput("password", { required: false });
-            // Ensure either endpoint or addresses are set
-            if (endpoint === "" && addresses.length === 0) {
-                throw new Error("invalid configuration: please set either endpoint or addresses");
-            }
-            // get an authenticated HTTP client for the GitHub API
-            const client = gh.getClient(repoToken);
-            // get all the jobs for the current workflow
-            const workflowId = process.env["GITHUB_RUN_ID"] || "";
-            const repo = process.env["GITHUB_REPOSITORY"] || "";
-            core.debug(`Allow listing ${allowList.length} jobs in repo ${repo}`);
-            const jobs = yield gh.fetchJobs(client, repo, workflowId, allowList);
-            // Initialize LogQL sender [TODO]
-            const logger = (0, pino_1.default)({
-                transport: {
-                    target: "pino-loki-transport",
-                    options: {
-                        lokiUrl: "http://{{loki server ip address}}",
-                    },
+async function run() {
+    try {
+        // retrieve config params
+        // Github repo token
+        const repoToken = core.getInput("repo-token", { required: true });
+        // List of jobs to collect logs from (all jobs when empty)
+        const jobNames = core.getInput("job-names", { required: false }) || "";
+        const allowList = getCommaSeparatedInput(jobNames);
+        // LogQL Push endpoint
+        const endpoint = core.getInput("endpoint", { required: false }) || "";
+        // LogQL endpoints (when endpoint is not present)
+        const addrValue = core.getInput("addresses", { required: false }) || "";
+        const addresses = getCommaSeparatedInput(addrValue);
+        // LogQL partition ID
+        const partitionId = core.getInput("partition", { required: false });
+        // logql user
+        const username = core.getInput("username", { required: false });
+        // logql pass
+        const password = core.getInput("password", { required: false });
+        // Ensure either endpoint or addresses are set
+        if (endpoint === "" && addresses.length === 0) {
+            throw new Error("invalid configuration: please set either endpoint or addresses");
+        }
+        // get an authenticated HTTP client for the GitHub API
+        const client = gh.getClient(repoToken);
+        // get all the jobs for the current workflow
+        const workflowId = process.env["GITHUB_RUN_ID"] || "";
+        const repo = process.env["GITHUB_REPOSITORY"] || "";
+        core.debug(`Allow listing ${allowList.length} jobs in repo ${repo}`);
+        const jobs = await gh.fetchJobs(client, repo, workflowId, allowList);
+        // Initialize LogQL sender [TODO]
+        const logger = (0, pino_1.default)({
+            transport: {
+                target: "pino-loki-transport",
+                options: {
+                    lokiUrl: "http://{{loki server ip address}}",
                 },
-            });
-            // get the logs for each job
-            core.debug(`Getting logs for ${jobs.length} jobs`);
-            for (const j of jobs) {
-                const lines = yield gh.fetchLogs(client, repo, j);
-                core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
-                for (const l of lines) {
-                    // Ship logs to LogQL
-                    // core.debug(`${l}`);
-                    logger.info(l);
-                }
+            },
+        });
+        // get the logs for each job
+        core.debug(`Getting logs for ${jobs.length} jobs`);
+        for (const j of jobs) {
+            const lines = await gh.fetchLogs(client, repo, j);
+            core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
+            for (const l of lines) {
+                // Ship logs to LogQL
+                // core.debug(`${l}`);
+                logger.info(l);
             }
         }
-        catch (e) {
-            core.setFailed(`Run failed: ${e}`);
-        }
-    });
+    }
+    catch (e) {
+        core.setFailed(`Run failed: ${e}`);
+    }
 }
 exports.run = run;
 
