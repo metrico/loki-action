@@ -110,11 +110,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = exports.getCommaSeparatedInput = void 0;
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const core = __importStar(__nccwpck_require__(2186));
 const process = __importStar(__nccwpck_require__(1765));
 const gh = __importStar(__nccwpck_require__(5928));
 const pino_1 = __importDefault(__nccwpck_require__(9608));
-const defaultIndex = "logs-generic-default";
 // Split comma separated inputs into an array of trimmed values
 function getCommaSeparatedInput(value) {
     let retVal = [];
@@ -3180,54 +3181,95 @@ function validator (opts = {}) {
 "use strict";
 
 
-function genWrap (wraps, ref, fn, event) {
-  function wrap () {
+const refs = {
+  exit: [],
+  beforeExit: []
+}
+const functions = {
+  exit: onExit,
+  beforeExit: onBeforeExit
+}
+const registry = new FinalizationRegistry(clear)
+
+function install (event) {
+  if (refs[event].length > 0) {
+    return
+  }
+
+  process.on(event, functions[event])
+}
+
+function uninstall (event) {
+  if (refs[event].length > 0) {
+    return
+  }
+  process.removeListener(event, functions[event])
+}
+
+function onExit () {
+  callRefs('exit')
+}
+
+function onBeforeExit () {
+  callRefs('beforeExit')
+}
+
+function callRefs (event) {
+  for (const ref of refs[event]) {
     const obj = ref.deref()
-    // This should alway happen, however GC is
-    // undeterministic so it might happen.
+    const fn = ref.fn
+
+    // This should always happen, however GC is
+    // undeterministic so it might not happen.
     /* istanbul ignore else */
     if (obj !== undefined) {
       fn(obj, event)
     }
   }
-
-  wraps[event] = wrap
-  process.once(event, wrap)
 }
 
-const registry = new FinalizationRegistry(clear)
-const map = new WeakMap()
-
-function clear (wraps) {
-  process.removeListener('exit', wraps.exit)
-  process.removeListener('beforeExit', wraps.beforeExit)
+function clear (ref) {
+  for (const event of ['exit', 'beforeExit']) {
+    const index = refs[event].indexOf(ref)
+    refs[event].splice(index, index + 1)
+    uninstall(event)
+  }
 }
 
-function register (obj, fn) {
+function _register (event, obj, fn) {
   if (obj === undefined) {
     throw new Error('the object can\'t be undefined')
   }
+  install(event)
   const ref = new WeakRef(obj)
+  ref.fn = fn
 
-  const wraps = {}
-  map.set(obj, wraps)
-  registry.register(obj, wraps)
+  registry.register(obj, ref)
+  refs[event].push(ref)
+}
 
-  genWrap(wraps, ref, fn, 'exit')
-  genWrap(wraps, ref, fn, 'beforeExit')
+function register (obj, fn) {
+  _register('exit', obj, fn)
+}
+
+function registerBeforeExit (obj, fn) {
+  _register('beforeExit', obj, fn)
 }
 
 function unregister (obj) {
-  const wraps = map.get(obj)
-  map.delete(obj)
-  if (wraps) {
-    clear(wraps)
-  }
   registry.unregister(obj)
+  for (const event of ['exit', 'beforeExit']) {
+    refs[event] = refs[event].filter((ref) => {
+      const _obj = ref.deref()
+      return _obj && _obj !== obj
+    })
+    uninstall(event)
+  }
 }
 
 module.exports = {
   register,
+  registerBeforeExit,
   unregister
 }
 
@@ -3276,13 +3318,136 @@ module.exports = {
 
 /***/ }),
 
-/***/ 6522:
+/***/ 6670:
 /***/ ((module) => {
 
 "use strict";
 
 
+// **************************************************************
+// * Code initially copied/adapted from "pony-cause" npm module *
+// * Please upstream improvements there                         *
+// **************************************************************
+
+/**
+ * @param {Error|{ cause?: unknown|(()=>err)}} err
+ * @returns {Error|undefined}
+ */
+const getErrorCause = (err) => {
+  if (!err) return
+
+  /** @type {unknown} */
+  // @ts-ignore
+  const cause = err.cause
+
+  // VError / NError style causes
+  if (typeof cause === 'function') {
+    // @ts-ignore
+    const causeResult = err.cause()
+
+    return causeResult instanceof Error
+      ? causeResult
+      : undefined
+  } else {
+    return cause instanceof Error
+      ? cause
+      : undefined
+  }
+}
+
+/**
+ * Internal method that keeps a track of which error we have already added, to avoid circular recursion
+ *
+ * @private
+ * @param {Error} err
+ * @param {Set<Error>} seen
+ * @returns {string}
+ */
+const _stackWithCauses = (err, seen) => {
+  if (!(err instanceof Error)) return ''
+
+  const stack = err.stack || ''
+
+  // Ensure we don't go circular or crazily deep
+  if (seen.has(err)) {
+    return stack + '\ncauses have become circular...'
+  }
+
+  const cause = getErrorCause(err)
+
+  if (cause) {
+    seen.add(err)
+    return (stack + '\ncaused by: ' + _stackWithCauses(cause, seen))
+  } else {
+    return stack
+  }
+}
+
+/**
+ * @param {Error} err
+ * @returns {string}
+ */
+const stackWithCauses = (err) => _stackWithCauses(err, new Set())
+
+/**
+ * Internal method that keeps a track of which error we have already added, to avoid circular recursion
+ *
+ * @private
+ * @param {Error} err
+ * @param {Set<Error>} seen
+ * @param {boolean} [skip]
+ * @returns {string}
+ */
+const _messageWithCauses = (err, seen, skip) => {
+  if (!(err instanceof Error)) return ''
+
+  const message = skip ? '' : (err.message || '')
+
+  // Ensure we don't go circular or crazily deep
+  if (seen.has(err)) {
+    return message + ': ...'
+  }
+
+  const cause = getErrorCause(err)
+
+  if (cause) {
+    seen.add(err)
+
+    // @ts-ignore
+    const skipIfVErrorStyleCause = typeof err.cause === 'function'
+
+    return (message +
+      (skipIfVErrorStyleCause ? '' : ': ') +
+      _messageWithCauses(cause, seen, skipIfVErrorStyleCause))
+  } else {
+    return message
+  }
+}
+
+/**
+ * @param {Error} err
+ * @returns {string}
+ */
+const messageWithCauses = (err) => _messageWithCauses(err, new Set())
+
+module.exports = {
+  getErrorCause,
+  stackWithCauses,
+  messageWithCauses
+}
+
+
+/***/ }),
+
+/***/ 6522:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
 module.exports = errSerializer
+
+const { messageWithCauses, stackWithCauses } = __nccwpck_require__(6670)
 
 const { toString } = Object.prototype
 const seen = Symbol('circular-ref-tag')
@@ -3299,6 +3464,11 @@ const pinoErrProto = Object.create({}, {
     value: undefined
   },
   stack: {
+    enumerable: true,
+    writable: true,
+    value: undefined
+  },
+  aggregateErrors: {
     enumerable: true,
     writable: true,
     value: undefined
@@ -3328,14 +3498,19 @@ function errSerializer (err) {
   _err.type = toString.call(err.constructor) === '[object Function]'
     ? err.constructor.name
     : err.name
-  _err.message = err.message
-  _err.stack = err.stack
+  _err.message = messageWithCauses(err)
+  _err.stack = stackWithCauses(err)
+
+  if (global.AggregateError !== undefined && err instanceof global.AggregateError && Array.isArray(err.errors)) {
+    _err.aggregateErrors = err.errors.map(err => errSerializer(err))
+  }
+
   for (const key in err) {
     if (_err[key] === undefined) {
       const val = err[key]
       if (val instanceof Error) {
-        /* eslint-disable no-prototype-builtins */
-        if (!val.hasOwnProperty(seen)) {
+        // We append cause messages and stacks to _err, therefore skipping causes here
+        if (key !== 'cause' && !Object.prototype.hasOwnProperty.call(val, seen)) {
           _err[key] = errSerializer(val)
         }
       } else {
@@ -3429,12 +3604,20 @@ function reqSerializer (req) {
   // req.originalUrl is for expressjs compat.
   if (req.originalUrl) {
     _req.url = req.originalUrl
-    _req.query = req.query
-    _req.params = req.params
   } else {
-    // req.url.path is  for hapi compat.
-    _req.url = req.path || (req.url ? (req.url.path || req.url) : undefined)
+    const path = req.path
+    // path for safe hapi compat.
+    _req.url = typeof path === 'string' ? path : (req.url ? req.url.path || req.url : undefined)
   }
+
+  if (req.query) {
+    _req.query = req.query
+  }
+
+  if (req.params) {
+    _req.params = req.params
+  }
+
   _req.headers = req.headers
   _req.remoteAddress = connection && connection.remoteAddress
   _req.remotePort = connection && connection.remotePort
@@ -3492,7 +3675,7 @@ Object.defineProperty(pinoResProto, rawSymbol, {
 
 function resSerializer (res) {
   const _res = Object.create(pinoResProto)
-  _res.statusCode = res.statusCode
+  _res.statusCode = res.headersSent ? res.statusCode : null
   _res.headers = res.getHeaders ? res.getHeaders() : res._headers
   _res.raw = res
   return _res
@@ -3541,24 +3724,6 @@ module.exports = function getCallers () {
 
   return fileNames
 }
-
-
-/***/ }),
-
-/***/ 4735:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const warning = __nccwpck_require__(5521)()
-module.exports = warning
-
-const warnName = 'PinoWarning'
-
-warning.create(warnName, 'PINODEP008', 'prettyPrint is deprecated, look at https://github.com/pinojs/pino-pretty for alternatives.')
-
-warning.create(warnName, 'PINODEP009', 'The use of pino.final is discouraged in Node.js v14+ and not required. It will be removed in the next major version')
 
 
 /***/ }),
@@ -3765,14 +3930,12 @@ module.exports = {
 /***/ }),
 
 /***/ 8578:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module) => {
 
 "use strict";
 
 
-const { version } = __nccwpck_require__(8686)
-
-module.exports = { version }
+module.exports = { version: '8.4.2' }
 
 
 /***/ }),
@@ -3830,10 +3993,18 @@ function multistream (streamsArray, opts) {
     let dest
     const level = this.lastLevel
     const { streams } = this
+    // for handling situation when several streams has the same level
+    let recordedLevel = 0
     let stream
-    for (let i = 0; i < streams.length; i++) {
+
+    // if dedupe set to true we send logs to the stream with the highest level
+    // therefore, we have to change sorting order
+    for (let i = initLoopVar(streams.length, opts.dedupe); checkLoopVar(i, streams.length, opts.dedupe); i = adjustLoopVar(i, opts.dedupe)) {
       dest = streams[i]
       if (dest.level <= level) {
+        if (recordedLevel !== 0 && recordedLevel !== dest.level) {
+          break
+        }
         stream = dest.stream
         if (stream[metadata]) {
           const { lastTime, lastMsg, lastObj, lastLogger } = this
@@ -3843,10 +4014,11 @@ function multistream (streamsArray, opts) {
           stream.lastObj = lastObj
           stream.lastLogger = lastLogger
         }
-        if (!opts.dedupe || dest.level === level) {
-          stream.write(data)
+        stream.write(data)
+        if (opts.dedupe) {
+          recordedLevel = dest.level
         }
-      } else {
+      } else if (!opts.dedupe) {
         break
       }
     }
@@ -3915,7 +4087,7 @@ function multistream (streamsArray, opts) {
 
     for (let i = 0; i < streams.length; i++) {
       streams[i] = {
-        level: level,
+        level,
         stream: this.streams[i].stream
       }
     }
@@ -3934,6 +4106,18 @@ function multistream (streamsArray, opts) {
 
 function compareByLevel (a, b) {
   return a.level - b.level
+}
+
+function initLoopVar (length, dedupe) {
+  return dedupe ? length - 1 : 0
+}
+
+function adjustLoopVar (i, dedupe) {
+  return dedupe ? i - 1 : i + 1
+}
+
+function checkLoopVar (i, length, dedupe) {
+  return dedupe ? i >= 0 : i < length
 }
 
 module.exports = multistream
@@ -3966,6 +4150,7 @@ const {
   streamSym,
   serializersSym,
   formattersSym,
+  errorKeySym,
   useOnlyCustomLevelsSym,
   needsMetadataGsym,
   redactFmtSym,
@@ -4121,20 +4306,21 @@ function defaultMixinMergeStrategy (mergeObject, mixinObject) {
 function write (_obj, msg, num) {
   const t = this[timeSym]()
   const mixin = this[mixinSym]
+  const errorKey = this[errorKeySym]
   const mixinMergeStrategy = this[mixinMergeStrategySym] || defaultMixinMergeStrategy
   let obj
 
   if (_obj === undefined || _obj === null) {
     obj = {}
   } else if (_obj instanceof Error) {
-    obj = { err: _obj }
+    obj = { [errorKey]: _obj }
     if (msg === undefined) {
       msg = _obj.message
     }
   } else {
     obj = _obj
-    if (msg === undefined && _obj.err) {
-      msg = _obj.err.message
+    if (msg === undefined && _obj[errorKey]) {
+      msg = _obj[errorKey].message
     }
   }
 
@@ -4306,7 +4492,6 @@ const mixinSym = Symbol('pino.mixin')
 
 const lsCacheSym = Symbol('pino.lsCache')
 const chindingsSym = Symbol('pino.chindings')
-const parsedChindingsSym = Symbol('pino.parsedChindings')
 
 const asJsonSym = Symbol('pino.asJson')
 const writeSym = Symbol('pino.write')
@@ -4321,6 +4506,7 @@ const stringifiersSym = Symbol('pino.stringifiers')
 const endSym = Symbol('pino.end')
 const formatOptsSym = Symbol('pino.formatOpts')
 const messageKeySym = Symbol('pino.messageKey')
+const errorKeySym = Symbol('pino.errorKey')
 const nestedKeySym = Symbol('pino.nestedKey')
 const nestedKeyStrSym = Symbol('pino.nestedKeyStr')
 const mixinMergeStrategySym = Symbol('pino.mixinMergeStrategy')
@@ -4342,7 +4528,6 @@ module.exports = {
   mixinSym,
   lsCacheSym,
   chindingsSym,
-  parsedChindingsSym,
   asJsonSym,
   writeSym,
   serializersSym,
@@ -4356,6 +4541,7 @@ module.exports = {
   endSym,
   formatOptsSym,
   messageKeySym,
+  errorKeySym,
   nestedKeySym,
   wildcardFirstSym,
   needsMetadataGsym,
@@ -4399,11 +4585,10 @@ module.exports = { nullTime, epochTime, unixTime, isoTime }
 const format = __nccwpck_require__(5933)
 const { mapHttpRequest, mapHttpResponse } = __nccwpck_require__(2571)
 const SonicBoom = __nccwpck_require__(3460)
-const warning = __nccwpck_require__(4735)
+const onExit = __nccwpck_require__(9660)
 const {
   lsCacheSym,
   chindingsSym,
-  parsedChindingsSym,
   writeSym,
   serializersSym,
   formatOptsSym,
@@ -4412,9 +4597,6 @@ const {
   stringifySym,
   stringifySafeSym,
   wildcardFirstSym,
-  needsMetadataGsym,
-  redactFmtSym,
-  streamSym,
   nestedKeySym,
   formattersSym,
   messageKeySym,
@@ -4604,123 +4786,6 @@ function asChindings (instance, bindings) {
   return data
 }
 
-function getPrettyStream (opts, prettifier, dest, instance) {
-  if (prettifier && typeof prettifier === 'function') {
-    prettifier = prettifier.bind(instance)
-    return prettifierMetaWrapper(prettifier(opts), dest, opts)
-  }
-  try {
-    const prettyFactory = __nccwpck_require__(1462).prettyFactory
-    prettyFactory.asMetaWrapper = prettifierMetaWrapper
-    return prettifierMetaWrapper(prettyFactory(opts), dest, opts)
-  } catch (e) {
-    if (e.message.startsWith("Cannot find module 'pino-pretty'")) {
-      throw Error('Missing `pino-pretty` module: `pino-pretty` must be installed separately')
-    };
-    throw e
-  }
-}
-
-function prettifierMetaWrapper (pretty, dest, opts) {
-  opts = Object.assign({ suppressFlushSyncWarning: false }, opts)
-  let warned = false
-  return {
-    [needsMetadataGsym]: true,
-    lastLevel: 0,
-    lastMsg: null,
-    lastObj: null,
-    lastLogger: null,
-    flushSync () {
-      if (opts.suppressFlushSyncWarning || warned) {
-        return
-      }
-      warned = true
-      setMetadataProps(dest, this)
-      dest.write(pretty(Object.assign({
-        level: 40, // warn
-        msg: 'pino.final with prettyPrint does not support flushing',
-        time: Date.now()
-      }, this.chindings())))
-    },
-    chindings () {
-      const lastLogger = this.lastLogger
-      let chindings = null
-
-      // protection against flushSync being called before logging
-      // anything
-      if (!lastLogger) {
-        return null
-      }
-
-      if (lastLogger.hasOwnProperty(parsedChindingsSym)) {
-        chindings = lastLogger[parsedChindingsSym]
-      } else {
-        chindings = JSON.parse('{' + lastLogger[chindingsSym].substr(1) + '}')
-        lastLogger[parsedChindingsSym] = chindings
-      }
-
-      return chindings
-    },
-    write (chunk) {
-      const lastLogger = this.lastLogger
-      const chindings = this.chindings()
-
-      let time = this.lastTime
-
-      /* istanbul ignore next */
-      if (typeof time === 'number') {
-        // do nothing!
-      } else if (time.match(/^\d+/)) {
-        time = parseInt(time)
-      } else {
-        time = time.slice(1, -1)
-      }
-
-      const lastObj = this.lastObj
-      const lastMsg = this.lastMsg
-      const errorProps = null
-
-      const formatters = lastLogger[formattersSym]
-      const formattedObj = formatters.log ? formatters.log(lastObj) : lastObj
-
-      const messageKey = lastLogger[messageKeySym]
-      if (lastMsg && formattedObj && !Object.prototype.hasOwnProperty.call(formattedObj, messageKey)) {
-        formattedObj[messageKey] = lastMsg
-      }
-
-      const obj = Object.assign({
-        level: this.lastLevel,
-        time
-      }, formattedObj, errorProps)
-
-      const serializers = lastLogger[serializersSym]
-      const keys = Object.keys(serializers)
-
-      for (var i = 0; i < keys.length; i++) {
-        const key = keys[i]
-        if (obj[key] !== undefined) {
-          obj[key] = serializers[key](obj[key])
-        }
-      }
-
-      for (const key in chindings) {
-        if (!obj.hasOwnProperty(key)) {
-          obj[key] = chindings[key]
-        }
-      }
-
-      const stringifiers = lastLogger[stringifiersSym]
-      const redact = stringifiers[redactFmtSym]
-
-      const formatted = pretty(typeof redact === 'function' ? redact(obj) : obj)
-      if (formatted === undefined) return
-
-      setMetadataProps(dest, this)
-      dest.write(formatted)
-    }
-  }
-}
-
 function hasBeenTampered (stream) {
   return stream.write !== stream.constructor.prototype.write
 }
@@ -4730,12 +4795,17 @@ function buildSafeSonicBoom (opts) {
   stream.on('error', filterBrokenPipe)
   // if we are sync: false, we must flush on exit
   if (!opts.sync && isMainThread) {
-    setupOnExit(stream)
+    onExit.register(stream, autoEnd)
+
+    stream.on('close', function () {
+      onExit.unregister(stream)
+    })
   }
   return stream
 
   function filterBrokenPipe (err) {
-    // TODO verify on Windows
+    // Impossible to replicate across all operating systems
+    /* istanbul ignore next */
     if (err.code === 'EPIPE') {
       // If we get EPIPE, we should stop logging here
       // however we have no control to the consumer of
@@ -4748,20 +4818,6 @@ function buildSafeSonicBoom (opts) {
     }
     stream.removeListener('error', filterBrokenPipe)
     stream.emit('error', err)
-  }
-}
-
-function setupOnExit (stream) {
-  /* istanbul ignore next */
-  if (global.WeakRef && global.WeakMap && global.FinalizationRegistry) {
-    // This is leak free, it does not leave event handlers
-    const onExit = __nccwpck_require__(9660)
-
-    onExit.register(stream, autoEnd)
-
-    stream.on('close', function () {
-      onExit.unregister(stream)
-    })
   }
 }
 
@@ -4779,6 +4835,8 @@ function autoEnd (stream, eventName) {
       stream.end()
     })
   } else {
+    // For some reason istanbul is not detecting this, but it's there
+    /* istanbul ignore next */
     // We do not have an event loop, so flush synchronously
     stream.flushSync()
   }
@@ -4788,13 +4846,13 @@ function createArgsNormalizer (defaultOptions) {
   return function normalizeArgs (instance, caller, opts = {}, stream) {
     // support stream as a string
     if (typeof opts === 'string') {
-      stream = buildSafeSonicBoom({ dest: opts, sync: true })
+      stream = buildSafeSonicBoom({ dest: opts })
       opts = {}
     } else if (typeof stream === 'string') {
       if (opts && opts.transport) {
         throw Error('only one of option.transport or stream can be specified')
       }
-      stream = buildSafeSonicBoom({ dest: stream, sync: true })
+      stream = buildSafeSonicBoom({ dest: stream })
     } else if (opts instanceof SonicBoom || opts.writable || opts._writableState) {
       stream = opts
       opts = {}
@@ -4816,82 +4874,25 @@ function createArgsNormalizer (defaultOptions) {
     opts.serializers = Object.assign({}, defaultOptions.serializers, opts.serializers)
     opts.formatters = Object.assign({}, defaultOptions.formatters, opts.formatters)
 
+    if (opts.prettyPrint) {
+      throw new Error('prettyPrint option is no longer supported, see the pino-pretty package (https://github.com/pinojs/pino-pretty)')
+    }
+
     if ('onTerminated' in opts) {
       throw Error('The onTerminated option has been removed, use pino.final instead')
     }
-    if ('changeLevelName' in opts) {
-      process.emitWarning(
-        'The changeLevelName option is deprecated and will be removed in v7. Use levelKey instead.',
-        { code: 'changeLevelName_deprecation' }
-      )
-      opts.levelKey = opts.changeLevelName
-      delete opts.changeLevelName
-    }
-    const { enabled, prettyPrint, prettifier, messageKey } = opts
+    const { enabled } = opts
     if (enabled === false) opts.level = 'silent'
-    stream = stream || process.stdout
-    if (stream === process.stdout && stream.fd >= 0 && !hasBeenTampered(stream)) {
-      stream = buildSafeSonicBoom({ fd: stream.fd, sync: true })
-    }
-    if (prettyPrint) {
-      warning.emit('PINODEP008')
-      const prettyOpts = Object.assign({ messageKey }, prettyPrint)
-      stream = getPrettyStream(prettyOpts, prettifier, stream, instance)
+    if (!stream) {
+      if (!hasBeenTampered(process.stdout)) {
+        // If process.stdout.fd is undefined, it means that we are running
+        // in a worker thread. Let's assume we are logging to file descriptor 1.
+        stream = buildSafeSonicBoom({ fd: process.stdout.fd || 1 })
+      } else {
+        stream = process.stdout
+      }
     }
     return { opts, stream }
-  }
-}
-
-function final (logger, handler) {
-  const major = Number(process.versions.node.split('.')[0])
-  if (major >= 14) warning.emit('PINODEP009')
-
-  if (typeof logger === 'undefined' || typeof logger.child !== 'function') {
-    throw Error('expected a pino logger instance')
-  }
-  const hasHandler = (typeof handler !== 'undefined')
-  if (hasHandler && typeof handler !== 'function') {
-    throw Error('if supplied, the handler parameter should be a function')
-  }
-  const stream = logger[streamSym]
-  if (typeof stream.flushSync !== 'function') {
-    throw Error('final requires a stream that has a flushSync method, such as pino.destination')
-  }
-
-  const finalLogger = new Proxy(logger, {
-    get: (logger, key) => {
-      if (key in logger.levels.values) {
-        return (...args) => {
-          logger[key](...args)
-          stream.flushSync()
-        }
-      }
-      return logger[key]
-    }
-  })
-
-  if (!hasHandler) {
-    try {
-      stream.flushSync()
-    } catch {
-      // it's too late to wait for the stream to be ready
-      // because this is a final tick scenario.
-      // in practice there shouldn't be a situation where it isn't
-      // however, swallow the error just in case (and for easier testing)
-    }
-    return finalLogger
-  }
-
-  return (err = null, ...args) => {
-    try {
-      stream.flushSync()
-    } catch (e) {
-      // it's too late to wait for the stream to be ready
-      // because this is a final tick scenario.
-      // in practice there shouldn't be a situation where it isn't
-      // however, swallow the error just in case (and for easier testing)
-    }
-    return handler(err, finalLogger, ...args)
   }
 }
 
@@ -4916,16 +4917,6 @@ function buildFormatters (level, bindings, log) {
   }
 }
 
-function setMetadataProps (dest, that) {
-  if (dest[needsMetadataGsym] === true) {
-    dest.lastLevel = that.lastLevel
-    dest.lastMsg = that.lastMsg
-    dest.lastObj = that.lastObj
-    dest.lastTime = that.lastTime
-    dest.lastLogger = that.lastLogger
-  }
-}
-
 /**
  * Convert a string integer file descriptor to a proper native integer
  * file descriptor.
@@ -4939,18 +4930,21 @@ function normalizeDestFileDescriptor (destination) {
   if (typeof destination === 'string' && Number.isFinite(fd)) {
     return fd
   }
+  // destination could be undefined if we are in a worker
+  if (destination === undefined) {
+    // This is stdout in UNIX systems
+    return 1
+  }
   return destination
 }
 
 module.exports = {
   noop,
   buildSafeSonicBoom,
-  getPrettyStream,
   asChindings,
   asJson,
   genLog,
   createArgsNormalizer,
-  final,
   stringify,
   buildFormatters,
   normalizeDestFileDescriptor
@@ -4969,36 +4963,17 @@ const { createRequire } = __nccwpck_require__(2282)
 const getCallers = __nccwpck_require__(7453)
 const { join, isAbsolute } = __nccwpck_require__(5622)
 const sleep = __nccwpck_require__(6950)
-
-let onExit
-
-if (global.WeakRef && global.WeakMap && global.FinalizationRegistry) {
-  // This require MUST be top level otherwise the transport would
-  // not work from within Jest as it hijacks require.
-  onExit = __nccwpck_require__(9660)
-}
-
+const onExit = __nccwpck_require__(9660)
 const ThreadStream = __nccwpck_require__(8366)
 
 function setupOnExit (stream) {
-  /* istanbul ignore next */
-  if (onExit) {
-    // This is leak free, it does not leave event handlers
-    onExit.register(stream, autoEnd)
+  // This is leak free, it does not leave event handlers
+  onExit.register(stream, autoEnd)
+  onExit.registerBeforeExit(stream, flush)
 
-    stream.on('close', function () {
-      onExit.unregister(stream)
-    })
-  } else {
-    const fn = autoEnd.bind(null, stream)
-    process.once('beforeExit', fn)
-    process.once('exit', fn)
-
-    stream.on('close', function () {
-      process.removeListener('beforeExit', fn)
-      process.removeListener('exit', fn)
-    })
-  }
+  stream.on('close', function () {
+    onExit.unregister(stream)
+  })
 }
 
 function buildStream (filename, workerData, workerOpts) {
@@ -5025,6 +5000,7 @@ function buildStream (filename, workerData, workerOpts) {
   }
 
   function onExit () {
+    /* istanbul ignore next */
     if (stream.closed) {
       return
     }
@@ -5047,6 +5023,10 @@ function autoEnd (stream) {
   stream.once('close', function () {
     stream.unref()
   })
+}
+
+function flush (stream) {
+  stream.flushSync()
 }
 
 function transport (fullOptions) {
@@ -5142,7 +5122,6 @@ const { assertDefaultLevelFound, mappings, genLsCache, levels } = __nccwpck_requ
 const {
   createArgsNormalizer,
   asChindings,
-  final,
   buildSafeSonicBoom,
   buildFormatters,
   stringify,
@@ -5164,6 +5143,7 @@ const {
   endSym,
   formatOptsSym,
   messageKeySym,
+  errorKeySym,
   nestedKeySym,
   mixinSym,
   useOnlyCustomLevelsSym,
@@ -5180,9 +5160,9 @@ const defaultOptions = {
   level: 'info',
   levels,
   messageKey: 'msg',
+  errorKey: 'err',
   nestedKey: null,
   enabled: true,
-  prettyPrint: false,
   base: { pid, hostname },
   serializers: Object.assign(Object.create(null), {
     err: defaultErrorSerializer
@@ -5220,6 +5200,7 @@ function pino (...args) {
     serializers,
     timestamp,
     messageKey,
+    errorKey,
     nestedKey,
     base,
     name,
@@ -5294,6 +5275,7 @@ function pino (...args) {
     [endSym]: end,
     [formatOptsSym]: formatOpts,
     [messageKeySym]: messageKey,
+    [errorKeySym]: errorKey,
     [nestedKeySym]: nestedKey,
     // protect against injection
     [nestedKeyStrSym]: nestedKey ? `,${JSON.stringify(nestedKey)}:{` : '',
@@ -5322,14 +5304,13 @@ module.exports.destination = (dest = process.stdout.fd) => {
     dest.dest = normalizeDestFileDescriptor(dest.dest || process.stdout.fd)
     return buildSafeSonicBoom(dest)
   } else {
-    return buildSafeSonicBoom({ dest: normalizeDestFileDescriptor(dest), minLength: 0, sync: true })
+    return buildSafeSonicBoom({ dest: normalizeDestFileDescriptor(dest), minLength: 0 })
   }
 }
 
 module.exports.transport = __nccwpck_require__(5763)
 module.exports.multistream = __nccwpck_require__(5505)
 
-module.exports.final = final
 module.exports.levels = mappings()
 module.exports.stdSerializers = serializers
 module.exports.stdTimeFunctions = Object.assign({}, time)
@@ -5339,76 +5320,6 @@ module.exports.version = version
 // Enables default and name export with TypeScript and Babel
 module.exports.default = pino
 module.exports.pino = pino
-
-
-/***/ }),
-
-/***/ 5521:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const { format } = __nccwpck_require__(1669)
-
-function build () {
-  const codes = {}
-  const emitted = new Map()
-
-  function create (name, code, message) {
-    if (!name) throw new Error('Warning name must not be empty')
-    if (!code) throw new Error('Warning code must not be empty')
-    if (!message) throw new Error('Warning message must not be empty')
-
-    code = code.toUpperCase()
-
-    if (codes[code] !== undefined) {
-      throw new Error(`The code '${code}' already exist`)
-    }
-
-    function buildWarnOpts (a, b, c) {
-      // more performant than spread (...) operator
-      let formatted
-      if (a && b && c) {
-        formatted = format(message, a, b, c)
-      } else if (a && b) {
-        formatted = format(message, a, b)
-      } else if (a) {
-        formatted = format(message, a)
-      } else {
-        formatted = message
-      }
-
-      return {
-        code,
-        name,
-        message: formatted
-      }
-    }
-
-    emitted.set(code, false)
-    codes[code] = buildWarnOpts
-
-    return codes[code]
-  }
-
-  function emit (code, a, b, c) {
-    if (codes[code] === undefined) throw new Error(`The code '${code}' does not exist`)
-    if (emitted.get(code) === true) return
-    emitted.set(code, true)
-
-    const warning = codes[code](a, b, c)
-    process.emitWarning(warning.message, warning.name, warning.code)
-  }
-
-  return {
-    create,
-    emit,
-    emitted
-  }
-}
-
-module.exports = build
 
 
 /***/ }),
@@ -6249,7 +6160,7 @@ function SonicBoom (opts) {
     return new SonicBoom(opts)
   }
 
-  let { fd, dest, minLength, maxLength, maxWrite, sync, append = true, mode, mkdir, retryEAGAIN } = opts || {}
+  let { fd, dest, minLength, maxLength, maxWrite, sync, append = true, mode, mkdir, retryEAGAIN, fsync } = opts || {}
 
   fd = fd || dest
 
@@ -6268,6 +6179,7 @@ function SonicBoom (opts) {
   this.maxLength = maxLength || 0
   this.maxWrite = maxWrite || MAX_WRITE
   this.sync = sync || false
+  this._fsync = fsync || false
   this.append = append || false
   this.mode = mode
   this.retryEAGAIN = retryEAGAIN || (() => true)
@@ -6312,9 +6224,22 @@ function SonicBoom (opts) {
       }
       return
     }
+
     this.emit('write', n)
 
     this._len -= n
+    // In case of multi-byte characters, the length of the written buffer
+    // may be different from the length of the string. Let's make sure
+    // we do not have an accumulated string with a negative length.
+    // This also mean that ._len is not precise, but it's not a problem as some
+    // writes might be triggered earlier than ._minLength.
+    if (this._len < 0) {
+      this._len = 0
+    }
+
+    // TODO if we have a multi-byte character in the buffer, we need to
+    // n might not be the same as this._writingBuf.length, so we might loose
+    // characters here. The solution to this problem is to use a Buffer for _writingBuf.
     this._writingBuf = this._writingBuf.slice(n)
 
     if (this._writingBuf.length) {
@@ -6333,6 +6258,10 @@ function SonicBoom (opts) {
         this.release(err)
         return
       }
+    }
+
+    if (this._fsync) {
+      fs.fsyncSync(this.fd)
     }
 
     const len = this._len
@@ -6734,7 +6663,7 @@ function nextFlush (stream) {
     })
   } else {
     // This should never happen
-    throw new Error('overwritten')
+    destroy(stream, new Error('overwritten'))
   }
 }
 
@@ -6762,7 +6691,7 @@ function onWorkerMessage (msg) {
       destroy(stream, msg.err)
       break
     default:
-      throw new Error('this should not happen: ' + msg.code)
+      destroy(stream, new Error('this should not happen: ' + msg.code))
   }
 }
 
@@ -6775,7 +6704,7 @@ function onWorkerExit (code) {
   registry.unregister(stream)
   stream.worker.exited = true
   stream.worker.off('exit', onWorkerExit)
-  destroy(stream, code !== 0 ? new Error('The worker thread exited') : null)
+  destroy(stream, code !== 0 ? new Error('the worker thread exited') : null)
 }
 
 class ThreadStream extends EventEmitter {
@@ -6809,11 +6738,13 @@ class ThreadStream extends EventEmitter {
 
   write (data) {
     if (this[kImpl].destroyed) {
-      throw new Error('the worker has exited')
+      error(this, new Error('the worker has exited'))
+      return false
     }
 
     if (this[kImpl].ending) {
-      throw new Error('the worker is ending')
+      error(this, new Error('the worker is ending'))
+      return false
     }
 
     if (this[kImpl].flushing && this[kImpl].buf.length + data.length >= MAX_STRING) {
@@ -6936,6 +6867,12 @@ class ThreadStream extends EventEmitter {
   }
 }
 
+function error (stream, err) {
+  setImmediate(() => {
+    stream.emit('error', err)
+  })
+}
+
 function destroy (stream, err) {
   if (stream[kImpl].destroyed) {
     return
@@ -6944,7 +6881,7 @@ function destroy (stream, err) {
 
   if (err) {
     stream[kImpl].errored = err
-    stream.emit('error', err)
+    error(stream, err)
   }
 
   if (!stream.worker.exited) {
@@ -6997,11 +6934,13 @@ function end (stream) {
       readIndex = Atomics.load(stream[kImpl].state, READ_INDEX)
 
       if (readIndex === -2) {
-        throw new Error('end() failed')
+        destroy(stream, new Error('end() failed'))
+        return
       }
 
       if (++spins === 10) {
-        throw new Error('end() took too long (10s)')
+        destroy(stream, new Error('end() took too long (10s)'))
+        return
       }
     }
 
@@ -7080,7 +7019,7 @@ function flushSync (stream) {
     const readIndex = Atomics.load(stream[kImpl].state, READ_INDEX)
 
     if (readIndex === -2) {
-      throw new Error('_flushSync failed')
+      throw Error('_flushSync failed')
     }
 
     // process._rawDebug(`(flushSync) readIndex (${readIndex}) writeIndex (${writeIndex})`)
@@ -8112,22 +8051,6 @@ function version(uuid) {
 
 var _default = version;
 exports.default = _default;
-
-/***/ }),
-
-/***/ 1462:
-/***/ ((module) => {
-
-module.exports = eval("require")("pino-pretty");
-
-
-/***/ }),
-
-/***/ 8686:
-/***/ ((module) => {
-
-"use strict";
-module.exports = JSON.parse('{"_from":"pino@^7.1.0","_id":"pino@7.11.0","_inBundle":false,"_integrity":"sha512-dMACeu63HtRLmCG8VKdy4cShCPKaYDR4youZqoSWLxl5Gu99HUw8bw75thbPv9Nip+H+QYX8o3ZJbTdVZZ2TVg==","_location":"/pino","_phantomChildren":{},"_requested":{"type":"range","registry":true,"raw":"pino@^7.1.0","name":"pino","escapedName":"pino","rawSpec":"^7.1.0","saveSpec":null,"fetchSpec":"^7.1.0"},"_requiredBy":["/","/pino-loki-transport"],"_resolved":"https://registry.npmjs.org/pino/-/pino-7.11.0.tgz","_shasum":"0f0ea5c4683dc91388081d44bff10c83125066f6","_spec":"pino@^7.1.0","_where":"/usr/src/loki-action","author":{"name":"Matteo Collina","email":"hello@matteocollina.com"},"bin":{"pino":"bin.js"},"browser":"./browser.js","bugs":{"url":"https://github.com/pinojs/pino/issues"},"bundleDependencies":false,"contributors":[{"name":"David Mark Clements","email":"huperekchuno@googlemail.com"},{"name":"James Sumners","email":"james.sumners@gmail.com"},{"name":"Thomas Watson Steen","email":"w@tson.dk","url":"https://twitter.com/wa7son"}],"dependencies":{"atomic-sleep":"^1.0.0","fast-redact":"^3.0.0","on-exit-leak-free":"^0.2.0","pino-abstract-transport":"v0.5.0","pino-std-serializers":"^4.0.0","process-warning":"^1.0.0","quick-format-unescaped":"^4.0.3","real-require":"^0.1.0","safe-stable-stringify":"^2.1.0","sonic-boom":"^2.2.1","thread-stream":"^0.15.1"},"deprecated":false,"description":"super fast, all natural json logger","devDependencies":{"@types/flush-write-stream":"^1.0.0","@types/node":"^17.0.0","@types/tap":"^15.0.6","airtap":"4.0.4","benchmark":"^2.1.4","bole":"^4.0.0","bunyan":"^1.8.14","docsify-cli":"^4.4.1","eslint":"^7.17.0","eslint-config-standard":"^16.0.3","eslint-plugin-import":"^2.22.1","eslint-plugin-node":"^11.1.0","eslint-plugin-promise":"^5.1.0","execa":"^5.0.0","fastbench":"^1.0.1","flush-write-stream":"^2.0.0","import-fresh":"^3.2.1","jest":"^27.3.1","log":"^6.0.0","loglevel":"^1.6.7","pino-pretty":"^v7.6.0","pre-commit":"^1.2.2","proxyquire":"^2.1.3","pump":"^3.0.0","rimraf":"^3.0.2","semver":"^7.0.0","split2":"^4.0.0","steed":"^1.1.3","strip-ansi":"^6.0.0","tap":"^16.0.0","tape":"^5.0.0","through2":"^4.0.0","ts-node":"^10.7.0","tsd":"^0.20.0","typescript":"^4.4.4","winston":"^3.3.3"},"files":["pino.js","file.js","pino.d.ts","bin.js","browser.js","pretty.js","usage.txt","test","docs","example.js","lib"],"homepage":"http://getpino.io","keywords":["fast","logger","stream","json"],"license":"MIT","main":"pino.js","name":"pino","precommit":"test","repository":{"type":"git","url":"git+https://github.com/pinojs/pino.git"},"scripts":{"bench":"node benchmarks/utils/runbench all","bench-basic":"node benchmarks/utils/runbench basic","bench-child":"node benchmarks/utils/runbench child","bench-child-child":"node benchmarks/utils/runbench child-child","bench-child-creation":"node benchmarks/utils/runbench child-creation","bench-deep-object":"node benchmarks/utils/runbench deep-object","bench-formatters":"node benchmarks/utils/runbench formatters","bench-longs-tring":"node benchmarks/utils/runbench long-string","bench-multi-arg":"node benchmarks/utils/runbench multi-arg","bench-object":"node benchmarks/utils/runbench object","browser-test":"airtap --local 8080 test/browser*test.js","cov-ui":"tap --ts --coverage-report=html","docs":"docsify serve","lint":"eslint .","test":"npm run lint && npm run transpile && tap --ts && jest test/jest && npm run test-types","test-ci":"npm run lint && npm run transpile && tap --ts --no-check-coverage --coverage-report=lcovonly && npm run test-types","test-ci-pnpm":"pnpm run lint && npm run transpile && tap --ts --no-coverage --no-check-coverage && pnpm run test-types","test-ci-yarn-pnp":"yarn run lint && npm run transpile && tap --ts --no-check-coverage --coverage-report=lcovonly","test-types":"tsc && tsd && ts-node test/types/pino.ts","transpile":"node ./test/fixtures/ts/transpile.cjs","update-bench-doc":"node benchmarks/utils/generate-benchmark-doc > docs/benchmarks.md"},"tsd":{"directory":"test/types"},"type":"commonjs","types":"pino.d.ts","version":"7.11.0"}');
 
 /***/ }),
 

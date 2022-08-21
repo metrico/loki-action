@@ -32,12 +32,6 @@ async function start () {
     } else {
       fn = (await realImport(filename))
     }
-
-    // Depending on how the default export is performed, and on how the code is
-    // transpiled, we may find cases of two nested "default" objects.
-    // See https://github.com/pinojs/pino/issues/1243#issuecomment-982774762
-    if (typeof fn === 'object') fn = fn.default
-    if (typeof fn === 'object') fn = fn.default
   } catch (error) {
     // A yarn user that tries to start a ThreadStream for an external module
     // provides a filename pointing to a zip file.
@@ -50,10 +44,20 @@ async function start () {
     if ((error.code === 'ENOTDIR' || error.code === 'ERR_MODULE_NOT_FOUND') &&
      filename.startsWith('file://')) {
       fn = realRequire(decodeURIComponent(filename.replace('file://', '')))
+    } else if (error.code === undefined) {
+      // When bundled with pkg, an undefined error is thrown when called with realImport
+      fn = realRequire(decodeURIComponent(filename.replace(process.platform === 'win32' ? 'file:///' : 'file://', '')))
     } else {
       throw error
     }
   }
+
+  // Depending on how the default export is performed, and on how the code is
+  // transpiled, we may find cases of two nested "default" objects.
+  // See https://github.com/pinojs/pino/issues/1243#issuecomment-982774762
+  if (typeof fn === 'object') fn = fn.default
+  if (typeof fn === 'object') fn = fn.default
+
   destination = await fn(workerData.workerData)
 
   destination.on('error', function (err) {

@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as core from "@actions/core";
 import { HttpClient } from "@actions/http-client";
 import * as process from "process";
 import * as gh from "./github";
 import pino from "pino";
 import { LogWorkerOptions } from "pino-loki-transport";
-
-const defaultIndex = "logs-generic-default";
 
 // Split comma separated inputs into an array of trimmed values
 export function getCommaSeparatedInput(value: string): string[] {
