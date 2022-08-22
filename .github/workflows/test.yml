@@ -13,8 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-          npm install
-          npm run all
+          yarn install
+          yarn run all
   # Make sure the action works on a clean machine without building.
   e2e:
     if: github.event.pull_request.head.repo.fork == false && github.actor != 'dependabot[bot]'
