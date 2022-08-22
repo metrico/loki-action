@@ -94,6 +94,9 @@ const core = __importStar(__nccwpck_require__(2186));
 const process = __importStar(__nccwpck_require__(1765));
 const gh = __importStar(__nccwpck_require__(5928));
 const pino_1 = __importDefault(__nccwpck_require__(9608));
+const path = __importStar(__nccwpck_require__(5622));
+const workerPath = "./dist/worker.js";
+const target = path.resolve(workerPath);
 // Split comma separated inputs into an array of trimmed values
 function getCommaSeparatedInput(value) {
     let retVal = [];
@@ -106,6 +109,7 @@ function getCommaSeparatedInput(value) {
 }
 exports.getCommaSeparatedInput = getCommaSeparatedInput;
 async function run() {
+    const wPath = path;
     try {
         // retrieve config params
         // Github repo token
@@ -138,9 +142,9 @@ async function run() {
         // Initialize LogQL sender [TODO]
         const logger = (0, pino_1.default)({
             transport: {
-                target: "pino-loki-transport",
+                target: "./pinoLoki.js",
                 options: {
-                    lokiUrl: "http://{{loki server ip address}}",
+                    lokiUrl: endpoint || addresses[0],
                 },
             },
         });

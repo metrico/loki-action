@@ -68,14 +68,13 @@ export async function run(): Promise<void> {
       workflowId,
       allowList
     );
-    const wPath = "./dist/worker.js";
-    const target = path.resolve(wPath);
+
     // Initialize LogQL sender [TODO]
     const logger = pino({
       transport: {
-        target,
+        target: "./pinoLoki.js",
         options: {
-          lokiUrl: "http://{{loki server ip address}}",
+          lokiUrl: endpoint || addresses[0],
         } as LogWorkerOptions,
       },
     });
