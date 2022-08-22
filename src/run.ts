@@ -64,7 +64,7 @@ export async function run(): Promise<void> {
       allowList
     );
     
-    const target = path.resolve(__dirname,'./dist/worker.js');
+    const target = path.resolve('./dist/worker.js');
 
     // Initialize LogQL sender [TODO]
     const logger = pino({
