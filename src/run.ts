@@ -73,7 +73,7 @@ export async function run(): Promise<void> {
     const logger = pino({
       transport: {
         //@ts-ignore
-        target: wPath,
+        target: './dist/worker.js',
         options: {
           lokiUrl: "http://{{loki server ip address}}",
         } as LogWorkerOptions,
