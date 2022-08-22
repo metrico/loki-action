@@ -6,7 +6,7 @@ import * as process from "process";
 import * as gh from "./github";
 import pino from "pino";
 import { LogWorkerOptions } from "pino-loki-transport";
-import path = require('path')
+import path = require("path");
 // Split comma separated inputs into an array of trimmed values
 export function getCommaSeparatedInput(value: string): string[] {
   let retVal: string[] = [];
@@ -63,9 +63,9 @@ export async function run(): Promise<void> {
       workflowId,
       allowList
     );
-    
-    const target = path.resolve('./dist/worker.js');
-
+    const workerPath = "worker.js";
+    const basePath = __dirname;
+    const target = path.resolve(basePath, workerPath);
     // Initialize LogQL sender [TODO]
     const logger = pino({
       transport: {

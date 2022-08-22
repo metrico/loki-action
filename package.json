@@ -10,7 +10,7 @@
     "format-check": "prettier --check **/*.ts",
     "package": "ncc build --source-map --license licenses.txt",
     "test": "jest",
-    "all": "npm run build && npm run format && npm run package"
+    "all": "yarn run build && yarn run format && yarn run package"
   },
   "repository": {
     "type": "git",
