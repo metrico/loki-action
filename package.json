@@ -30,7 +30,7 @@
     "pino-abstract-transport": "^1.0.0",
     "pino-loki-transport": "^0.8.6",
     "protobufjs": "^7.0.0",
-    "transport-stream": "^1.4.7"
+    "transport-stream": "^1.4.4"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.3",
