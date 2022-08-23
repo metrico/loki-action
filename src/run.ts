@@ -6,6 +6,7 @@ import * as process from "process";
 import * as gh from "./github";
 import pino from "pino";
 import { LogWorkerOptions } from "pino-loki-transport";
+
 import * as path from "path";
 
 const workerPath = "./dist/worker.js";
@@ -68,11 +69,11 @@ export async function run(): Promise<void> {
       workflowId,
       allowList
     );
-
+    // const target = path.resolve('./lib/pinoloki.js')
     // Initialize LogQL sender [TODO]
     const logger = pino({
       transport: {
-        target: "./pinoLoki.js",
+        target:'pino-loki-transport',
         options: {
           lokiUrl: endpoint || addresses[0],
         } as LogWorkerOptions,
