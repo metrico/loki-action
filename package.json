@@ -29,6 +29,7 @@
     "pino": "^8.4.2",
     "pino-abstract-transport": "^1.0.0",
     "pino-loki-transport": "^0.8.6",
+    "protobufjs": "^7.0.0",
     "transport-stream": "^1.4.7"
   },
   "devDependencies": {
