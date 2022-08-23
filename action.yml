@@ -25,7 +25,7 @@ inputs:
     description: optional partition id
 runs:
   using: 'node16'
-  main: 'dist/index.js'
+  main: 'lib/main.js'
 branding:
   icon: 'copy'
   color: 'yellow'
