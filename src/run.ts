@@ -73,7 +73,7 @@ export async function run(): Promise<void> {
     // Initialize LogQL sender [TODO]
     const logger = pino({
       transport: {
-        target:'pino-loki-transport',
+        target: "pino-loki-transport",
         options: {
           lokiUrl: endpoint || addresses[0],
         } as LogWorkerOptions,
