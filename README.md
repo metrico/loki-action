@@ -1,8 +1,8 @@
 <img src='https://user-images.githubusercontent.com/1423657/173144443-fc7ba783-d5bf-47f9-bf59-707693da5ed1.png' style="margin-left:-10px" width=250/>
 
-# Logs Action for qryn/loki
+# LogQL Push Action
 
-This action collect logs from a Github Actions workflow run and send them to a qryn/loki endpoint
+Collect and ship logs from a Github Actions workflow to a LogQL Push API ([qryn](https://qryn.metrico.in), [loki](https://grafana.com/oss/loki/))
 
 ## Usage
 
@@ -40,6 +40,6 @@ $ npm run all
 ```
 
 
-### Acknowledgements
+#### Acknowledgements
 
-Based on [elastic-logs](https://github.com/masci/elastic-logs) by [masci](https://github.com/masci)
+Loosely based on [elastic-logs](https://github.com/masci/elastic-logs) by [masci](https://github.com/masci)
