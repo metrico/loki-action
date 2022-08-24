@@ -1,11 +1,10 @@
 const core = require("@actions/core");
-
 const process = require("process");
 const HttpClient = require("@actions/http-client").HttpClient;
-const { createLogger, transports } = require("winston");
+const { createLogger, format } = require("winston");
 const LokiTransport = require("winston-loki");
 const githubAPIUrl = "https://api.github.com";
-
+const { combine, timestamp, label, printf } = format;
 /**
  *
  * @param {*} ghToken
@@ -150,33 +149,39 @@ export async function run() {
       }
       return "";
     };
-    const options = {
-      transports: [
-        new LokiTransport({
-          host: endpoint || addresses[0],
-          gracefulShutdown: true,
-          onConnectionError: onConnectionError,
-          lokiBasicAuth: lokiBasicAuth(),
-          replaceTimestamp: true,
-        }),
-      ],
+    const options = (job) => {
+      return {
+        transports: [
+          new LokiTransport({
+            format: combine(
+              label({ job: job.name }),
+              timestamp(),
+              printf(({ message }) => message)
+            ),
+            host: endpoint || addresses[0],
+            gracefulShutdown: true,
+            onConnectionError: onConnectionError,
+            lokiBasicAuth: lokiBasicAuth(),
+          }),
+        ],
+      };
     };
-    const logger = createLogger(options);
+    const logger = (job) => createLogger(options(job));
 
     // get the logs for each job
     core.debug(`Getting logs for ${jobs.length} jobs`);
     for (const j of jobs) {
+      const logs = logger(j);
       const lines = await fetchLogs(client, repo, j);
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
         core.debug(`${l}`);
-        logger.info(l);
+        logs.info(l);
       }
+      logs.clear();
     }
-    logger.clear();
   } catch (e) {
     core.setFailed(`Run failed: ${e}`);
-    logger.error(`Run failed: ${e}`);
   }
 }
 
