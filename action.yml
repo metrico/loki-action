@@ -1,5 +1,5 @@
-name: 'qryn-loki logs'
-description: 'Send workflow logs to qryn-loki'
+name: 'loki-action'
+description: 'Send workflow logs to qryn/loki'
 author: 'Lorenzo Mangani'
 inputs:
   repo-token:
