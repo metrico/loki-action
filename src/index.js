@@ -6,6 +6,11 @@ const { createLogger, transports } = require("winston");
 const LokiTransport = require("winston-loki");
 const githubAPIUrl = "https://api.github.com";
 
+/**
+ * 
+ * @param {*} ghToken 
+ * @returns 
+ */
 export function getClient(ghToken) {
   return new HttpClient("gh-http-client", [], {
     headers: {
@@ -15,6 +20,14 @@ export function getClient(ghToken) {
   });
 }
 
+/**
+ * 
+ * @param {*} httpClient 
+ * @param {*} repo 
+ * @param {*} runId 
+ * @param {*} allowList 
+ * @returns 
+ */
 export async function fetchJobs(httpClient, repo, runId, allowList) {
   const url = `${githubAPIUrl}/repos/${repo}/actions/runs/${runId}/jobs`;
   const res = await httpClient.get(url);
@@ -41,6 +54,13 @@ export async function fetchJobs(httpClient, repo, runId, allowList) {
   return jobs;
 }
 
+/**
+ * 
+ * @param {*} httpClient 
+ * @param {*} repo 
+ * @param {*} job 
+ * @returns 
+ */
 export async function fetchLogs(httpClient, repo, job) {
   const url = `${githubAPIUrl}/repos/${repo}/actions/jobs/${job.id}/logs`;
   const res = await httpClient.get(url);
@@ -53,6 +73,11 @@ export async function fetchLogs(httpClient, repo, job) {
   return body.split("\n");
 }
 
+/**
+ * 
+ * @param {*} value 
+ * @returns 
+ */
 export function getCommaSeparatedInput(value) {
   let val = [];
   if (value !== "") {
@@ -63,6 +88,23 @@ export function getCommaSeparatedInput(value) {
   return val;
 }
 
+/**
+ * 
+ * @param {*} job 
+ * @param {*} line 
+ * @returns 
+ */
+export function formatLog(job,line) {
+  if(job && line) {
+    return JSON.stringify(
+      {
+        message: `${line}`,
+        labels: { job: `${job?.name}`, level: "Debug" },
+      }
+    )
+  }
+  return line
+}
 export async function run() {
   try {
     // retrieve config params
@@ -129,15 +171,13 @@ export async function run() {
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
         core.debug(`${l}`);
-        logger.debug({
-          message: `${l}`,
-          labels: { job: `${j.name}`, level: "Debug" },
-        });
+        logger.debug(formatLog(j,l));
       }
     }
     logger.clear();
   } catch (e) {
     core.setFailed(`Run failed: ${e}`);
+    logger.error(`Run failed: ${e}`)
   }
 }
 
