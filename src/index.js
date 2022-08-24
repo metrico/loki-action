@@ -153,12 +153,7 @@ export async function run() {
       return {
         transports: [
           new LokiTransport({
-            format: combine(
-              label({ job: job.name }),
-              timestamp(),
-              printf(({ message }) => message)
-            ),
-            labels: { job: job.name, level: "Debug" },
+            labels: { job: job?.name, level: "Debug" },
             host: endpoint || addresses[0],
             gracefulShutdown: true,
             onConnectionError: onConnectionError,
