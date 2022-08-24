@@ -141,11 +141,7 @@ export async function run() {
 
     const options = (job) => {
       return {
-        format: format.combine(
-          label({ type: "github" }),
-          timestamp(),
-          lokiFormat
-        ),
+        format: combine(label({ type: "github" }), timestamp(), lokiFormat),
         transports: [
           new LokiTransport({
             labels: {
