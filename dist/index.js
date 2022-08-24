@@ -26609,8 +26609,18 @@ async function run() {
       }
       return "";
     };
+
+    const lokiFormat = printf(({ level, message, label, timestamp }) => {
+      return `${timestamp} [${label}] ${level}: ${message}`;
+    });
+
     const options = (job) => {
       return {
+        format: format.combine(
+          label({ type: "github" }),
+          timestamp(),
+          lokiFormat
+        ),
         transports: [
           new LokiTransport({
             labels: {
