@@ -1,7 +1,7 @@
 import * as process from "process";
 import { anything, capture, spy, when } from "ts-mockito";
-import * as gh from "../src/github";
-import { run } from "../src/run";
+import * as gh from "../src/index";
+import { run } from "../src/index";
 
 const spiedGH = spy(gh);
 

@@ -5,9 +5,9 @@ import { IncomingMessage } from "http";
 import { mock, instance, when, anything, reset, capture } from "ts-mockito";
 import jobsJson from "./jobs.json";
 
-let mockedHttpClient: HttpClient = mock(HttpClient);
-let mockedResponse: HttpClientResponse = mock(HttpClientResponse);
-let mockedMessage: IncomingMessage = mock(IncomingMessage);
+let mockedHttpClient = mock(HttpClient);
+let mockedResponse = mock(HttpClientResponse);
+let mockedMessage = mock(IncomingMessage);
 
 describe("Test jobs list retrieval", () => {
   beforeEach(() => {
@@ -26,13 +26,13 @@ describe("Test jobs list retrieval", () => {
       instance(mockedResponse)
     );
 
-    let jobs: Job[] = await fetchJobs(
+    let jobs = await fetchJobs(
       instance(mockedHttpClient),
       "masci/foo",
       "123",
       []
     );
-    const expected: Job[] = [
+    const expected = [
       {
         id: 3734144061,
         name: "test",
@@ -74,13 +74,10 @@ describe("Test jobs list retrieval", () => {
       instance(mockedResponse)
     );
 
-    let jobs: Job[] = await fetchJobs(
-      instance(mockedHttpClient),
-      "masci/foo",
-      "123",
-      ["e2e"]
-    );
-    const expected: Job[] = [
+    let jobs = await fetchJobs(instance(mockedHttpClient), "masci/foo", "123", [
+      "e2e",
+    ]);
+    const expected = [
       {
         id: 3734144148,
         name: "e2e",
@@ -110,14 +107,10 @@ describe("Test logs retrieval", () => {
       instance(mockedResponse)
     );
 
-    const lines: string[] = await fetchLogs(
-      instance(mockedHttpClient),
-      "masci/foo",
-      {
-        id: 3734144061,
-        name: "test",
-      }
-    );
+    const lines = await fetchLogs(instance(mockedHttpClient), "masci/foo", {
+      id: 3734144061,
+      name: "test",
+    });
     expect(lines.length).toBe(3);
     expect(lines[2]).toMatch(
       `2021-09-28T15:02:00.3781638Z Version: 20210919.1`

@@ -30,13 +30,13 @@ some-job:
 Install the dependencies
 
 ```bash
-$ yarn install
+$ npm install
 ```
 
-Lint, test and build the typescript and package it for distribution
+Lint and package it for distribution
 
 ```bash
-$ yarn run all
+$ npm run all
 ```
 
 

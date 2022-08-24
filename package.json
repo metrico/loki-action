@@ -3,14 +3,13 @@
   "version": "1.0.0",
   "private": false,
   "description": "qryn-loki logs action",
-  "main": "lib/main.js",
+  "main": "src/index.js",
   "scripts": {
-    "build": "tsc",
-    "format": "prettier --write **/*.ts",
-    "format-check": "prettier --check **/*.ts",
-    "package": "ncc build --source-map --license licenses.txt",
+    "format": "prettier --write **/*.js",
+    "format-check": "prettier --check **/*.js",
+    "package": "ncc build --license licenses.txt",
     "test": "jest",
-    "all": "npm run build && npm run format && npm run package"
+    "all": "npm run format && npm run package"
   },
   "repository": {
     "type": "git",
@@ -19,24 +18,19 @@
   "keywords": [
     "actions",
     "observability",
-    "logs"
+    "logs",
+    "qryn"
   ],
   "author": "Lorenzo Mangani",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.6.0",
     "@actions/http-client": "^1.0.8",
-    "pino": "^8.4.2",
-    "pino-abstract-transport": "^1.0.0",
-    "pino-loki-transport": "^0.8.6",
-    "protobufjs": "^7.0.0",
-    "transport-stream": "^1.4.4"
+    "winston": "^3.8.1",
+    "winston-loki": "^6.0.6"
+
   },
   "devDependencies": {
-    "@tsconfig/node16": "^1.0.3",
-    "@types/jest": "^27.0.2",
-    "@types/node": "^18.7.6",
-    "@types/split2": "^3.2.1",
     "@vercel/ncc": "^0.31.1",
     "eslint-plugin-github": "^4.3.7",
     "eslint-plugin-jest": "^25.2.1",
@@ -44,7 +38,6 @@
     "js-yaml": "^4.1.0",
     "prettier": "2.4.1",
     "ts-jest": "^27.0.7",
-    "ts-mockito": "^2.6.1",
-    "typescript": "^4.7.4"
+    "ts-mockito": "^2.6.1"
   }
 }
