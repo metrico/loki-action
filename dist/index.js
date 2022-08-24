@@ -26634,6 +26634,7 @@ async function run() {
               timestamp(),
               printf(({ message }) => message)
             ),
+            labels: { job: job.name, level: "Debug" },
             host: endpoint || addresses[0],
             gracefulShutdown: true,
             onConnectionError: onConnectionError,
