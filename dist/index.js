@@ -26471,6 +26471,7 @@ __nccwpck_require__.r(__webpack_exports__);
 /* harmony export */   "fetchJobs": () => (/* binding */ fetchJobs),
 /* harmony export */   "fetchLogs": () => (/* binding */ fetchLogs),
 /* harmony export */   "getCommaSeparatedInput": () => (/* binding */ getCommaSeparatedInput),
+/* harmony export */   "formatLog": () => (/* binding */ formatLog),
 /* harmony export */   "run": () => (/* binding */ run)
 /* harmony export */ });
 const core = __nccwpck_require__(2186);
@@ -26481,6 +26482,11 @@ const { createLogger, transports } = __nccwpck_require__(4158);
 const LokiTransport = __nccwpck_require__(4490);
 const githubAPIUrl = "https://api.github.com";
 
+/**
+ *
+ * @param {*} ghToken
+ * @returns
+ */
 function getClient(ghToken) {
   return new HttpClient("gh-http-client", [], {
     headers: {
@@ -26490,6 +26496,14 @@ function getClient(ghToken) {
   });
 }
 
+/**
+ *
+ * @param {*} httpClient
+ * @param {*} repo
+ * @param {*} runId
+ * @param {*} allowList
+ * @returns
+ */
 async function fetchJobs(httpClient, repo, runId, allowList) {
   const url = `${githubAPIUrl}/repos/${repo}/actions/runs/${runId}/jobs`;
   const res = await httpClient.get(url);
@@ -26516,6 +26530,13 @@ async function fetchJobs(httpClient, repo, runId, allowList) {
   return jobs;
 }
 
+/**
+ *
+ * @param {*} httpClient
+ * @param {*} repo
+ * @param {*} job
+ * @returns
+ */
 async function fetchLogs(httpClient, repo, job) {
   const url = `${githubAPIUrl}/repos/${repo}/actions/jobs/${job.id}/logs`;
   const res = await httpClient.get(url);
@@ -26528,6 +26549,11 @@ async function fetchLogs(httpClient, repo, job) {
   return body.split("\n");
 }
 
+/**
+ *
+ * @param {*} value
+ * @returns
+ */
 function getCommaSeparatedInput(value) {
   let val = [];
   if (value !== "") {
@@ -26538,6 +26564,21 @@ function getCommaSeparatedInput(value) {
   return val;
 }
 
+/**
+ *
+ * @param {*} job
+ * @param {*} line
+ * @returns
+ */
+function formatLog(job, line) {
+  if (job && line) {
+    return JSON.stringify({
+      message: `${line}`,
+      labels: { job: `${job?.name}`, level: "Debug" },
+    });
+  }
+  return line;
+}
 async function run() {
   try {
     // retrieve config params
@@ -26604,15 +26645,13 @@ async function run() {
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
         core.debug(`${l}`);
-        logger.debug({
-          message: `${l}`,
-          labels: { job: `${j.name}`, level: "Debug" },
-        });
+        logger.debug(formatLog(j, l));
       }
     }
     logger.clear();
   } catch (e) {
     core.setFailed(`Run failed: ${e}`);
+    logger.error(`Run failed: ${e}`);
   }
 }
 

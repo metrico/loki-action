@@ -7,9 +7,9 @@ const LokiTransport = require("winston-loki");
 const githubAPIUrl = "https://api.github.com";
 
 /**
- * 
- * @param {*} ghToken 
- * @returns 
+ *
+ * @param {*} ghToken
+ * @returns
  */
 export function getClient(ghToken) {
   return new HttpClient("gh-http-client", [], {
@@ -21,12 +21,12 @@ export function getClient(ghToken) {
 }
 
 /**
- * 
- * @param {*} httpClient 
- * @param {*} repo 
- * @param {*} runId 
- * @param {*} allowList 
- * @returns 
+ *
+ * @param {*} httpClient
+ * @param {*} repo
+ * @param {*} runId
+ * @param {*} allowList
+ * @returns
  */
 export async function fetchJobs(httpClient, repo, runId, allowList) {
   const url = `${githubAPIUrl}/repos/${repo}/actions/runs/${runId}/jobs`;
@@ -55,11 +55,11 @@ export async function fetchJobs(httpClient, repo, runId, allowList) {
 }
 
 /**
- * 
- * @param {*} httpClient 
- * @param {*} repo 
- * @param {*} job 
- * @returns 
+ *
+ * @param {*} httpClient
+ * @param {*} repo
+ * @param {*} job
+ * @returns
  */
 export async function fetchLogs(httpClient, repo, job) {
   const url = `${githubAPIUrl}/repos/${repo}/actions/jobs/${job.id}/logs`;
@@ -74,9 +74,9 @@ export async function fetchLogs(httpClient, repo, job) {
 }
 
 /**
- * 
- * @param {*} value 
- * @returns 
+ *
+ * @param {*} value
+ * @returns
  */
 export function getCommaSeparatedInput(value) {
   let val = [];
@@ -89,21 +89,19 @@ export function getCommaSeparatedInput(value) {
 }
 
 /**
- * 
- * @param {*} job 
- * @param {*} line 
- * @returns 
+ *
+ * @param {*} job
+ * @param {*} line
+ * @returns
  */
-export function formatLog(job,line) {
-  if(job && line) {
-    return JSON.stringify(
-      {
-        message: `${line}`,
-        labels: { job: `${job?.name}`, level: "Debug" },
-      }
-    )
+export function formatLog(job, line) {
+  if (job && line) {
+    return JSON.stringify({
+      message: `${line}`,
+      labels: { job: `${job?.name}`, level: "Debug" },
+    });
   }
-  return line
+  return line;
 }
 export async function run() {
   try {
@@ -171,13 +169,13 @@ export async function run() {
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
         core.debug(`${l}`);
-        logger.debug(formatLog(j,l));
+        logger.debug(formatLog(j, l));
       }
     }
     logger.clear();
   } catch (e) {
     core.setFailed(`Run failed: ${e}`);
-    logger.error(`Run failed: ${e}`)
+    logger.error(`Run failed: ${e}`);
   }
 }
 
