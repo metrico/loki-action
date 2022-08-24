@@ -26604,7 +26604,10 @@ async function run() {
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
         core.debug(`${l}`);
-        logger.info(l);
+        logger.debug({
+          message: `${l}`,
+          labels: { job: `${j.name}`, level: "Debug" },
+        });
       }
     }
     logger.clear();
