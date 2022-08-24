@@ -26537,6 +26537,7 @@ async function fetchJobs(httpClient, repo, runId, allowList) {
  * @param {*} job
  * @returns
  */
+
 async function fetchLogs(httpClient, repo, job) {
   const url = `${githubAPIUrl}/repos/${repo}/actions/jobs/${job.id}/logs`;
   const res = await httpClient.get(url);
@@ -26631,8 +26632,8 @@ async function run() {
           host: endpoint || addresses[0],
           gracefulShutdown: true,
           onConnectionError: onConnectionError,
-          timeout: 30000,
           lokiBasicAuth: lokiBasicAuth(),
+          replaceTimestamp: true,
         }),
       ],
     };
@@ -26645,7 +26646,7 @@ async function run() {
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
         core.debug(`${l}`);
-        logger.debug(formatLog(j, l));
+        logger.info(l);
       }
     }
     logger.clear();
