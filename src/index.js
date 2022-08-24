@@ -162,7 +162,7 @@ export async function run() {
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
         core.debug(`${l}`);
-        logs.debug(l);
+        logs.info(l);
       }
       logs.clear();
     }
