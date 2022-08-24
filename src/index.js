@@ -88,21 +88,6 @@ export function getCommaSeparatedInput(value) {
   return val;
 }
 
-/**
- *
- * @param {*} job
- * @param {*} line
- * @returns
- */
-export function formatLog(job, line) {
-  if (job && line) {
-    return JSON.stringify({
-      message: `${line}`,
-      labels: { job: `${job?.name}`, level: "Debug" },
-    });
-  }
-  return line;
-}
 export async function run() {
   try {
     // retrieve config params
@@ -153,7 +138,12 @@ export async function run() {
       return {
         transports: [
           new LokiTransport({
-            labels: { job: job?.name, level: "Debug" },
+            labels: {
+              job: job?.name,
+              repo,
+              workflowId,
+              type: "github",
+            },
             host: endpoint || addresses[0],
             gracefulShutdown: true,
             onConnectionError: onConnectionError,
@@ -172,7 +162,7 @@ export async function run() {
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
         core.debug(`${l}`);
-        logs.info(l);
+        logs.debug(l);
       }
       logs.clear();
     }
