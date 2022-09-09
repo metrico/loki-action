@@ -5,6 +5,8 @@ const { createLogger, format } = require("winston");
 const LokiTransport = require("winston-loki");
 const githubAPIUrl = "https://api.github.com";
 const { combine, timestamp, label, printf } = format;
+const { parse_rfc3339, parse_nanos } = require("@qxip/chrono-parse-rfc3339");
+
 /**
  *
  * @param {*} ghToken
@@ -151,6 +153,7 @@ export async function run() {
               type: "github",
             },
             host: endpoint || addresses[0],
+            json: true,
             gracefulShutdown: true,
             onConnectionError: onConnectionError,
             lokiBasicAuth: lokiBasicAuth(),
@@ -166,9 +169,18 @@ export async function run() {
       const logs = logger(j);
       const lines = await fetchLogs(client, repo, j);
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
+      var regex = /^UTC\s(.*?)\s(.*)$/
       for (const l of lines) {
-        core.debug(`${l}`);
-        logs.info(l);
+        try {
+          const line = l.match(regex)
+          const s = parse_rfc3339(line[1]);
+          const xlog = { "timestamp": s, "message": line[2] || '' }
+          core.debug(`${xlog}`);
+          logs.info(xlog);
+        } catch(e) { 
+          core.debug(`${xlog}`);
+          logs.info(l); 
+        }
       }
       logs.clear();
     }
