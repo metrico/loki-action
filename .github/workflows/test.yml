@@ -27,5 +27,5 @@ jobs:
         uses: ./
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          endpoint: ${{ secrets.LOGQL_ENDPOINT || 'https://cloki.glitch.me' }}
+          endpoint: ${{ secrets.LOGQL_ENDPOINT || 'https://qryn.glitch.me' }}
           job-names: build
