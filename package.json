@@ -1,6 +1,6 @@
 {
   "name": "loki-action",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "description": "qryn-loki logs action",
   "main": "src/index.js",
@@ -27,8 +27,8 @@
     "@actions/core": "^1.6.0",
     "@actions/http-client": "^1.0.8",
     "winston": "^3.8.1",
-    "winston-loki": "^6.0.6"
-
+    "winston-loki": "^6.0.6",
+    "@qxip/chrono-parse-rfc3339": "^0.1.2"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.31.1",
