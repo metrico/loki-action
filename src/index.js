@@ -181,7 +181,7 @@ export async function run() {
         } catch(e) { 
           const xlog = { "timestamp": Date.now(), "message": l }
           logs.info(xlog); 
-          core.debug(`error: ${e}`);
+          core.warning(`parser error: ${e}`);
         }
       }
       logs.clear();
