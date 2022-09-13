@@ -5,7 +5,6 @@ const { createLogger, format } = require("winston");
 const LokiTransport = require("winston-loki");
 const githubAPIUrl = "https://api.github.com";
 const { combine, timestamp, label, printf } = format;
-const { parse_rfc3339, parse_nanos } = require("@qxip/chrono-parse-rfc3339");
 
 /**
  *
@@ -170,11 +169,18 @@ export async function run() {
       const lines = await fetchLogs(client, repo, j);
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       var regex = /^UTC\s(.*?)\s(.*)$/
+      var regnano = /\.(.*)Z$/
+      
       for (const l of lines) {
         try {
           const line = l.match(regex);
           if (!line[1] || (line[2] && line[2].length === 0)) return;
-          const s = parse_rfc3339(line[1]) || Date.now();
+          // Hack a nanosecond timestamp
+          try {
+            var nano = parseInt(line[1].match(regnano)[1]) || 000000;
+            var seconds = parseInt(new Date(line[1]).getTime() / 1000);
+            const s = parseInt(seconds + nano.toString())
+          } catch(e) { const s = Date.now() }
           const xlog = { "timestamp": s, "message": line[2] }
           core.debug(`${xlog}`);
           logs.info(xlog);
