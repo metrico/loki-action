@@ -27,8 +27,7 @@
     "@actions/core": "^1.6.0",
     "@actions/http-client": "^1.0.8",
     "winston": "^3.8.1",
-    "winston-loki": "^6.0.6",
-    "@qxip/chrono-parse-rfc3339": "^0.1.2"
+    "winston-loki": "^6.0.6"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.31.1",
