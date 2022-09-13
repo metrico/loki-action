@@ -176,11 +176,9 @@ export async function run() {
           const line = l.match(regex);
           if (!line[1] || (line[2] && line[2].length === 0)) return;
           // Hack a nanosecond timestamp
-          try {
-            var nano = parseInt(line[1].match(regnano)[1]) || 000000;
-            var seconds = parseInt(new Date(line[1]).getTime() / 1000);
-            const s = parseInt(seconds + nano.toString())
-          } catch(e) { const s = Date.now() }
+          const nano = parseInt(line[1].match(regnano)[1]) || 000000;
+          const seconds = parseInt(new Date(line[1]).getTime() / 1000);
+          const s = parseInt(seconds + nano.toString())
           const xlog = { "timestamp": s, "message": line[2] }
           core.debug(`${xlog}`);
           logs.info(xlog);
