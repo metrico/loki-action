@@ -180,7 +180,8 @@ export async function run() {
           logs.info(xlog);
         } catch(e) { 
           core.debug(`${l}`);
-          logs.info(l); 
+          const xlog = { "timestamp": Date.now(), "message": l }
+          logs.info(xlog); 
         }
       }
       logs.clear();
