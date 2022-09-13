@@ -174,7 +174,8 @@ export async function run() {
       for (const l of lines) {
         try {
           const line = l.match(regex);
-          if (!line[1] || (line[2] && line[2].length === 0)) return;
+          console.log('DEBUG', line, l);
+          if (!line && !line[1] || (line[2] && line[2].length === 0)) return;
           const nano = parseInt(line[1].match(regnano)[1]) || "000000";
           const seconds = parseInt(new Date(line[1]).getTime() / 1000);
           const s = parseInt(seconds + nano.toString());
