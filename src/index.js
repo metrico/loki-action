@@ -4,7 +4,10 @@ const HttpClient = require("@actions/http-client").HttpClient;
 const { createLogger, format } = require("winston");
 const LokiTransport = require("winston-loki");
 const githubAPIUrl = "https://api.github.com";
-const { combine, timestamp, label, printf } = format;
+const { printf } = format;
+const gh_log_regex =
+  /^\s?(?<timestamp>((19|20)[0-9][0-9])[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])[T]([01][1-9]|[2][0-3])[:]([0-5][0-9])[:]([0-5][0-9])[.](?<nanosec>[0-9][0-9][0-9][0-9][0-9][0-9][0-9])[Z])\s(?<log>.*){0,1}/;
+
 /**
  *
  * @param {*} ghToken
@@ -135,21 +138,32 @@ export async function run() {
       return "";
     };
 
-    const lokiFormat = printf(({ level, message, label, timestamp }) => {
-      return `${timestamp} [${label}] ${level}: ${message}`;
+    const lokiFmt = printf(({ message }) => {
+      if (!message || message.length === 0) {
+        return;
+      }
+      const line = message.match(gh_log_regex);
+      if (!line?.groups?.log) {
+        return message;
+      }
+      const { log } = line?.groups;
+      const xlog = `${log}`;
+      return xlog;
     });
 
     const options = (job) => {
       return {
-        format: combine(label({ type: "github" }), timestamp(), lokiFormat),
         transports: [
           new LokiTransport({
             labels: {
               job: job?.name,
+              jobId: job?.id,
               repo,
               workflowId,
               type: "github",
             },
+            batching: false,
+            format: lokiFmt,
             host: endpoint || addresses[0],
             gracefulShutdown: true,
             onConnectionError: onConnectionError,
@@ -167,8 +181,14 @@ export async function run() {
       const lines = await fetchLogs(client, repo, j);
       core.debug(`Fetched ${lines.length} lines for job ${j.name}`);
       for (const l of lines) {
-        core.debug(`${l}`);
-        logs.info(l);
+        try {
+          if (l && l?.length > 0) {
+            logs.info(l);
+          }
+        } catch (e) {
+          core.warning(`Parser error ${e}`);
+          logs.warning(`Error: ${e}`);
+        }
       }
       logs.clear();
     }
