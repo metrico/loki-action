@@ -26518,11 +26518,6 @@ async function fetchJobs(httpClient, repo, runId, allowList) {
   const all = allowList.length === 0;
   for (const j of JSON.parse(body).jobs) {
     // if there's an allow list, skip job accordingly
-    core.debug(
-      `Checking !all (${!all}) && !allowList.includes(j.name) (${!allowList.includes(
-        j.name
-      )}) for ${j.name}`
-    );
     if (!all && !allowList.includes(j.name)) {
       continue;
     }
@@ -26532,7 +26527,6 @@ async function fetchJobs(httpClient, repo, runId, allowList) {
       name: j.name,
     });
   }
-  core.debug("jobs\n", jobs);
   return jobs;
 }
 
@@ -26607,7 +26601,6 @@ async function run() {
     const repo = process.env["GITHUB_REPOSITORY"] || "";
     core.debug(`Allow listing ${allowList.length} jobs in repo ${repo}`);
     const jobs = await fetchJobs(client, repo, workflowId, allowList);
-    core.debug(`Listings received ${jobs}`);
     const onConnectionError = (err) => {
       core.debug("Error at connecting with logs endpoint\n", err);
     };
