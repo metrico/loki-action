@@ -26642,7 +26642,7 @@ async function run() {
             host: endpoint || addresses[0],
             gracefulShutdown: true,
             onConnectionError: onConnectionError,
-            lokiBasicAuth: lokiBasicAuth(),
+            basicAuth: lokiBasicAuth(),
           }),
         ],
       };
