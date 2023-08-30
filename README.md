@@ -16,7 +16,7 @@ some-job:
       run: this-will-fail
     - name: qryn-logs
       if: failure()
-      uses: metrico/qryn-loki-logs@v1
+      uses: metrico/loki-action@V3
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         endpoint: ${{ secrets.LOGQL_ENDPOINT }}
