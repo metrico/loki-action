@@ -43,6 +43,11 @@ export async function fetchJobs(httpClient, repo, runId, allowList) {
   const all = allowList.length === 0;
   for (const j of JSON.parse(body).jobs) {
     // if there's an allow list, skip job accordingly
+    core.debug(
+      `Checking !all (${!all}) && !allowList.includes(j.name) (${!allowList.includes(
+        j.name
+      )}) for ${j.name}`
+    );
     if (!all && !allowList.includes(j.name)) {
       continue;
     }
