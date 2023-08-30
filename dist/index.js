@@ -26527,6 +26527,7 @@ async function fetchJobs(httpClient, repo, runId, allowList) {
       name: j.name,
     });
   }
+
   return jobs;
 }
 
@@ -26601,6 +26602,7 @@ async function run() {
     const repo = process.env["GITHUB_REPOSITORY"] || "";
     core.debug(`Allow listing ${allowList.length} jobs in repo ${repo}`);
     const jobs = await fetchJobs(client, repo, workflowId, allowList);
+
     const onConnectionError = (err) => {
       core.debug("Error at connecting with logs endpoint\n", err);
     };
